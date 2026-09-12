@@ -1,11 +1,14 @@
 :root {
   --storm: #0b1218;
+  --storm-elev: #121a22;
   --paper: #e7e2d8;
+  --paper-dim: #c8c2b6;
   --muted: #9aa4b2;
   --signal: #c4453c;
   --up: #d4483e;
   --down: #2f8f6b;
   --violet: #c4b5fd;
+  --border: #2a3440;
 }
 * { box-sizing: border-box; }
 html, body {
@@ -16,7 +19,7 @@ html, body {
   font-family: "Noto Sans TC", sans-serif;
 }
 #app { position: relative; height: 100%; overflow: hidden; }
-#map { display: block; width: 100%; height: 100%; }
+#map { display: block; width: 100%; height: 100%; touch-action: none; }
 .overlay {
   position: absolute;
   inset: 0;
@@ -25,15 +28,43 @@ html, body {
   flex-direction: column;
   justify-content: flex-end;
   padding: 2.5rem 1.25rem 2.5rem;
-  background: linear-gradient(to top, #0b1218 18%, rgba(11,18,24,0.55) 70%, rgba(11,18,24,0.2));
+}
+.overlay.dim {
+  background: rgba(11, 18, 24, 0.8);
+  justify-content: flex-end;
+  align-items: center;
+}
+@media (min-width: 640px) {
+  .overlay.dim { justify-content: center; }
 }
 .overlay.hidden, .hidden { display: none !important; }
+#titleArt {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.7;
+  pointer-events: none;
+}
+.veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, #0b1218 18%, rgba(11,18,24,0.7) 55%, rgba(11,18,24,0.3));
+  pointer-events: none;
+}
+.sheet {
+  position: relative;
+  width: min(32rem, 100%);
+  z-index: 1;
+}
 h1 {
   font-family: "Noto Serif TC", serif;
   font-size: clamp(2.4rem, 6vw, 3.4rem);
   font-weight: 500;
   margin: 0;
   letter-spacing: -0.03em;
+  text-wrap: balance;
 }
 h2 { font-family: "Noto Serif TC", serif; font-weight: 500; margin: 0 0 0.8rem; }
 .kicker {
@@ -44,8 +75,14 @@ h2 { font-family: "Noto Serif TC", serif; font-weight: 500; margin: 0 0 0.8rem; 
   color: #7d8896;
   margin: 0 0 0.6rem;
 }
-.sub { font-family: "Noto Serif TC", serif; color: #c8c2b6; margin: 0.2rem 0 1rem; }
+.sub { font-family: "Noto Serif TC", serif; color: var(--paper-dim); margin: 0.2rem 0 1rem; font-size: 1.1rem; }
 .lede { max-width: 36rem; color: var(--muted); line-height: 1.6; font-size: 0.92rem; }
+.records {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin: 0.9rem 0 0;
+}
 .row { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 1.1rem; }
 button {
   height: 3rem;
@@ -68,15 +105,36 @@ button.halt {
   color: var(--violet);
   border: 1px solid #7c3aed;
 }
+button.icon {
+  pointer-events: auto;
+  width: 2.6rem;
+  min-width: 2.6rem;
+  height: 2.6rem;
+  padding: 0;
+  border-radius: 0.5rem;
+  background: rgba(11, 18, 24, 0.7);
+  color: var(--paper);
+  border: 1px solid var(--border);
+  font-size: 0.78rem;
+}
 .card {
   width: min(28rem, 100%);
   margin: auto 0 0;
-  background: #121a22;
-  border: 1px solid #2a3440;
+  background: var(--storm-elev);
+  border: 1px solid var(--border);
   border-radius: 1rem;
   padding: 1.4rem;
 }
-.card ul { padding-left: 1.1rem; color: var(--muted); line-height: 1.55; }
+.card ul {
+  padding-left: 1.1rem;
+  color: var(--paper-dim);
+  line-height: 1.55;
+  font-size: 0.9rem;
+}
+.card ul li { margin: 0.45rem 0; }
+.card button { width: 100%; margin-top: 0.55rem; }
+.pause-card { max-width: 22rem; }
+.pause-card .lede { margin-top: 0.2rem; }
 #hud {
   position: absolute;
   inset: 0;
@@ -88,7 +146,7 @@ button.halt {
   pointer-events: none;
 }
 .top { display: flex; justify-content: space-between; gap: 0.7rem; }
-.chips { display: flex; gap: 0.4rem; }
+.chips { display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: flex-start; }
 .chip {
   height: 2.6rem;
   min-width: 2.6rem;
@@ -108,9 +166,10 @@ button.halt {
 #ticker {
   min-width: 12rem;
   background: rgba(11,18,24,0.78);
-  border: 1px solid #2a3440;
+  border: 1px solid var(--border);
   border-radius: 0.5rem;
   padding: 0.55rem 0.75rem;
+  backdrop-filter: blur(6px);
 }
 .ticker-head {
   display: flex;
@@ -127,8 +186,9 @@ button.halt {
 }
 #hsi.up, #delta.up { color: var(--up); }
 #hsi.down, #delta.down { color: var(--down); }
-#hsi.halted { color: var(--violet); }
+#hsi.halted, #delta.halted { color: var(--violet); }
 #delta { font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; }
+#spark { display: block; margin-top: 0.2rem; width: 168px; height: 28px; }
 .muted { color: var(--muted); }
 #banner {
   align-self: center;
@@ -138,6 +198,8 @@ button.halt {
   padding: 0.45rem 1rem;
   font-family: "Noto Serif TC", serif;
   font-size: 0.9rem;
+  text-align: center;
+  max-width: 28rem;
 }
 .bottom {
   display: flex;
@@ -147,16 +209,86 @@ button.halt {
 }
 #stats {
   background: rgba(11,18,24,0.7);
-  border: 1px solid #2a3440;
+  border: 1px solid var(--border);
   border-radius: 0.5rem;
   padding: 0.55rem 0.75rem;
   font-size: 0.78rem;
   color: #c4ccd6;
   line-height: 1.45;
 }
-.actions { display: flex; flex-direction: column; gap: 0.4rem; pointer-events: auto; }
+.actions { display: flex; flex-direction: column; gap: 0.4rem; pointer-events: auto; align-items: flex-end; }
 .actions button { pointer-events: auto; height: 2.8rem; }
-@media (max-width: 640px) {
+.hint {
+  background: var(--paper);
+  color: var(--storm);
+  border-radius: 0.45rem;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
+  margin: 1rem 0 0.4rem;
+}
+.stat {
+  background: #1b2430;
+  border-radius: 0.45rem;
+  padding: 0.45rem 0.7rem;
+}
+.stat .lbl { font-size: 0.72rem; color: var(--muted); }
+.stat .val {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 1.05rem;
+}
+.stat .val.up { color: var(--up); }
+#touch {
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  pointer-events: none;
+}
+#pad {
+  pointer-events: auto;
+  position: absolute;
+  left: 1.1rem;
+  bottom: 1.4rem;
+  width: 8rem;
+  height: 8rem;
+  border-radius: 50%;
+  border: 1px solid #3a4552;
+  background: rgba(11,18,24,0.4);
+  touch-action: none;
+}
+#knob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 3rem;
+  height: 3rem;
+  margin: -1.5rem 0 0 -1.5rem;
+  border-radius: 50%;
+  background: rgba(231,226,216,0.8);
+}
+#leeTouch, #haltTouch {
+  pointer-events: auto;
+  position: absolute;
+  right: 1.1rem;
+  width: 4rem;
+  height: 4rem;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 0.72rem;
+}
+#leeTouch { bottom: 1.8rem; }
+#haltTouch { bottom: 6.4rem; }
+@media (min-width: 640px) {
+  #touch { display: none !important; }
+}
+@media (max-width: 639px) {
+  .desktop { display: none; }
+  #stats { margin-bottom: 9rem; }
   .overlay { padding-bottom: 1.5rem; }
-  #stats { margin-bottom: 4.5rem; }
+  .desk-only { display: none; }
 }

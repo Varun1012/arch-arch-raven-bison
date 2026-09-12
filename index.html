@@ -14,7 +14,22 @@
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>八號風球</title>
-    <meta name="description" content="搬遷香港、開李氏力場、護住恆生指數。西太平洋颱風季策略遊戲。" />
+    <meta name="theme-color" content="#0b1218" />
+    <meta
+      name="description"
+      content="搬遷香港、開李氏力場、護住恆生指數。西太平洋颱風季策略遊戲。恆指兩萬點開市，一號起恐慌拋售。"
+    />
+    <meta property="og:title" content="八號風球" />
+    <meta
+      property="og:description"
+      content="搬遷香港、開李氏力場、護住恆生指數。西太平洋颱風季策略遊戲。"
+    />
+    <meta property="og:image" content="https://varun1012.github.io/arch-arch-raven-bison/og.jpg" />
+    <meta property="og:url" content="https://varun1012.github.io/arch-arch-raven-bison/" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="八號風球" />
+    <meta name="twitter:image" content="https://varun1012.github.io/arch-arch-raven-bison/og.jpg" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -29,30 +44,49 @@
       <canvas id="map"></canvas>
 
       <div id="title" class="overlay">
-        <p class="kicker">西太平洋颱風季 · 恒生指數</p>
-        <h1>八號風球</h1>
-        <p class="sub">李氏力場與搬遷香港</p>
-        <p class="lede">
-          恆指以兩萬點開市，風季八分鐘。後半或現紫色魔鬼風暴（一生成即超強颱風）。一號起恐慌拋售；可開李氏力場或搬走香港。下半季可停市五秒一次，若八號或以上未除即強制收市。
-        </p>
-        <div class="row">
-          <button id="start" type="button">進入風季</button>
-          <button id="helpBtn" type="button" class="ghost">避風守則</button>
+        <img id="titleArt" src="maps/title.jpg" alt="" />
+        <div class="veil"></div>
+        <div class="sheet">
+          <p class="kicker">西太平洋颱風季 · 恒生指數</p>
+          <h1>八號風球</h1>
+          <p class="sub">李氏力場與搬遷香港</p>
+          <p class="lede">
+            恆指以兩萬點開市，風季八分鐘。後半或現紫色魔鬼風暴（一生成即超強颱風）。一號起恐慌拋售；可開李氏力場或搬走香港。下半季可停市五秒一次，若八號或以上未除即強制收市。指數歸零亦完。
+          </p>
+          <div class="row">
+            <button id="start" type="button">進入風季</button>
+            <button id="helpBtn" type="button" class="ghost">避風守則</button>
+          </div>
+          <p id="records" class="records">收市紀錄 — / 逼走氣旋 0</p>
         </div>
       </div>
 
-      <div id="help" class="overlay hidden">
+      <div id="help" class="overlay dim hidden">
         <div class="card">
           <h2>避風守則</h2>
           <ul>
             <li>地圖範圍北緯 7–31 度、東經 105–140 度，香港為焦點。</li>
-            <li>熱帶低氣壓在任何洋面生成，登陸會減弱。部分先西行再北轉。</li>
-            <li>一號起恐慌拋售，幅度以八號為準：1號 20%、3號 50%、8號 100%、9號 200%、10號 400%。</li>
-            <li>風季八分鐘。最後四分鐘或現紫色魔鬼風暴，一出場即超強颱風。</li>
-            <li>下半季可停市一次、五秒。結束時若仍是八號或以上即強制收市。</li>
-            <li>WASD 搬遷香港 · 空白鍵李氏力場 · F 鍵停市。</li>
+            <li>熱帶低氣壓在地圖內任何洋面生成，登陸會減弱。部分先西行再北轉或東北轉，其餘大致西移。</li>
+            <li>一號起即恐慌拋售，幅度以八號為準：一號 20%、三號 50%、八號 100%、九號 200%、十號 400%。</li>
+            <li>警告除下，市場有機會反彈。十號最傷，一號最輕。</li>
+            <li>恆指以 20,000 點為基準。牛市／熊市各有主軸，但短線仍會有升有跌。</li>
+            <li>風季八分鐘。最後四分鐘難度升級，有機會生成紫色魔鬼風暴，一出場即為超強颱風。</li>
+            <li>下半季可停市一次、為時五秒。停市結束時若仍是八號或以上，即強制收市完結。</li>
+            <li>WASD 或搖桿移動香港位置，令風球對你失效。F 鍵停市。</li>
+            <li>空白鍵發動李氏力場，把附近氣旋推開。每季四次，有冷卻。</li>
+            <li>撐過整個風季且恆指未歸零即收市。港股慣例紅升綠跌。</li>
           </ul>
           <button id="helpBack" type="button">返回</button>
+        </div>
+      </div>
+
+      <div id="pause" class="overlay dim hidden">
+        <div class="card pause-card">
+          <h2>暫停</h2>
+          <p class="lede">氣旋不會等你。</p>
+          <button id="resume" type="button">繼續</button>
+          <button id="pauseHelp" type="button" class="ghost">避風守則</button>
+          <button id="quit" type="button" class="ghost">離開</button>
         </div>
       </div>
 
@@ -61,6 +95,8 @@
           <div class="chips">
             <div id="sig" class="chip">除下</div>
             <div id="cycle" class="chip bull">牛市</div>
+            <button id="mute" type="button" class="icon" aria-label="靜音">聲</button>
+            <button id="pauseBtn" type="button" class="icon" aria-label="暫停">停</button>
           </div>
           <div id="ticker">
             <div class="ticker-head">
@@ -69,23 +105,34 @@
             </div>
             <div id="hsi">20,000.00</div>
             <div id="delta">+0</div>
+            <canvas id="spark" width="168" height="28" aria-hidden="true"></canvas>
           </div>
         </div>
         <div id="banner" class="hidden"></div>
         <div class="bottom">
           <div id="stats"></div>
-          <div class="actions">
+          <div class="actions desktop">
             <button id="lee" type="button">李氏力場</button>
             <button id="halt" type="button" class="halt" disabled>停市 5 秒</button>
+            <div id="hint" class="hint hidden"></div>
           </div>
         </div>
       </div>
 
-      <div id="end" class="overlay hidden">
+      <div id="touch" class="hidden">
+        <div id="pad">
+          <div id="knob"></div>
+        </div>
+        <button id="leeTouch" type="button">力場</button>
+        <button id="haltTouch" type="button" class="halt">停市</button>
+      </div>
+
+      <div id="end" class="overlay dim hidden">
         <div class="card">
           <p id="endKicker" class="kicker"></p>
           <h2 id="endTitle"></h2>
           <p id="endBody" class="lede"></p>
+          <div id="endStats" class="stats-grid"></div>
           <button id="replay" type="button">再來一季</button>
         </div>
       </div>
