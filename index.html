@@ -2,6 +2,16 @@
 <html lang="zh-HK">
   <head>
     <meta charset="utf-8" />
+    <script>
+      (function () {
+        var host = location.hostname;
+        if (host && !/\.github\.io$/i.test(host) && location.protocol !== "file:") {
+          document.write(
+            '<base href="https://cdn.jsdelivr.net/gh/Varun1012/arch-arch-raven-bison@main/">'
+          );
+        }
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>八號風球</title>
     <meta name="description" content="搬遷香港、開李氏力場、護住恆生指數。西太平洋颱風季策略遊戲。" />

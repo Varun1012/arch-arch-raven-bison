@@ -2,7 +2,17 @@
 
 搬遷香港、開李氏力場、護住恆生指數。西太平洋颱風季策略遊戲。
 
-**Play:** open `index.html` locally, or use GitHub Pages on this repository.
+- **Source:** [github.com/Varun1012/arch-arch-raven-bison](https://github.com/Varun1012/arch-arch-raven-bison)
+- **GitHub Pages:** [varun1012.github.io/arch-arch-raven-bison](https://varun1012.github.io/arch-arch-raven-bison/)
+- **Preview (no Pages needed):** [htmlpreview](https://htmlpreview.github.io/?https://github.com/Varun1012/arch-arch-raven-bison/blob/main/index.html)
+
+GitHub blocks first-time Pages enablement from API / Actions tokens. Turn it on once:
+
+1. Open [Settings → Pages](https://github.com/Varun1012/arch-arch-raven-bison/settings/pages)
+2. **Build and deployment → Source** → **GitHub Actions**
+3. Open [Actions](https://github.com/Varun1012/arch-arch-raven-bison/actions) → latest **pages** run → **Re-run all jobs**
+
+After that, every push to `main` deploys automatically.
 
 ## How to play
 
