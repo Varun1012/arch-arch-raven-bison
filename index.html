@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>八號風球</title>
+    <meta name="description" content="搬遷香港、開李氏力場、護住恆生指數。西太平洋颱風季策略遊戲。" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="map"></canvas>
+
+      <div id="title" class="overlay">
+        <p class="kicker">西太平洋颱風季 · 恒生指數</p>
+        <h1>八號風球</h1>
+        <p class="sub">李氏力場與搬遷香港</p>
+        <p class="lede">
+          恆指以兩萬點開市，風季八分鐘。後半或現紫色魔鬼風暴（一生成即超強颱風）。一號起恐慌拋售；可開李氏力場或搬走香港。下半季可停市五秒一次，若八號或以上未除即強制收市。
+        </p>
+        <div class="row">
+          <button id="start" type="button">進入風季</button>
+          <button id="helpBtn" type="button" class="ghost">避風守則</button>
+        </div>
+      </div>
+
+      <div id="help" class="overlay hidden">
+        <div class="card">
+          <h2>避風守則</h2>
+          <ul>
+            <li>地圖範圍北緯 7–31 度、東經 105–140 度，香港為焦點。</li>
+            <li>熱帶低氣壓在任何洋面生成，登陸會減弱。部分先西行再北轉。</li>
+            <li>一號起恐慌拋售，幅度以八號為準：1號 20%、3號 50%、8號 100%、9號 200%、10號 400%。</li>
+            <li>風季八分鐘。最後四分鐘或現紫色魔鬼風暴，一出場即超強颱風。</li>
+            <li>下半季可停市一次、五秒。結束時若仍是八號或以上即強制收市。</li>
+            <li>WASD 搬遷香港 · 空白鍵李氏力場 · F 鍵停市。</li>
+          </ul>
+          <button id="helpBack" type="button">返回</button>
+        </div>
+      </div>
+
+      <div id="hud" class="hidden">
+        <div class="top">
+          <div class="chips">
+            <div id="sig" class="chip">除下</div>
+            <div id="cycle" class="chip bull">牛市</div>
+          </div>
+          <div id="ticker">
+            <div class="ticker-head">
+              <span>恒生指數</span>
+              <span class="muted">紅升綠跌 · 基準 20,000</span>
+            </div>
+            <div id="hsi">20,000.00</div>
+            <div id="delta">+0</div>
+          </div>
+        </div>
+        <div id="banner" class="hidden"></div>
+        <div class="bottom">
+          <div id="stats"></div>
+          <div class="actions">
+            <button id="lee" type="button">李氏力場</button>
+            <button id="halt" type="button" class="halt" disabled>停市 5 秒</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="end" class="overlay hidden">
+        <div class="card">
+          <p id="endKicker" class="kicker"></p>
+          <h2 id="endTitle"></h2>
+          <p id="endBody" class="lede"></p>
+          <button id="replay" type="button">再來一季</button>
+        </div>
+      </div>
+    </div>
+    <script src="game.js"></script>
+  </body>
+</html>

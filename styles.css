@@ -1,0 +1,162 @@
+:root {
+  --storm: #0b1218;
+  --paper: #e7e2d8;
+  --muted: #9aa4b2;
+  --signal: #c4453c;
+  --up: #d4483e;
+  --down: #2f8f6b;
+  --violet: #c4b5fd;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--storm);
+  color: var(--paper);
+  font-family: "Noto Sans TC", sans-serif;
+}
+#app { position: relative; height: 100%; overflow: hidden; }
+#map { display: block; width: 100%; height: 100%; }
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 2.5rem 1.25rem 2.5rem;
+  background: linear-gradient(to top, #0b1218 18%, rgba(11,18,24,0.55) 70%, rgba(11,18,24,0.2));
+}
+.overlay.hidden, .hidden { display: none !important; }
+h1 {
+  font-family: "Noto Serif TC", serif;
+  font-size: clamp(2.4rem, 6vw, 3.4rem);
+  font-weight: 500;
+  margin: 0;
+  letter-spacing: -0.03em;
+}
+h2 { font-family: "Noto Serif TC", serif; font-weight: 500; margin: 0 0 0.8rem; }
+.kicker {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #7d8896;
+  margin: 0 0 0.6rem;
+}
+.sub { font-family: "Noto Serif TC", serif; color: #c8c2b6; margin: 0.2rem 0 1rem; }
+.lede { max-width: 36rem; color: var(--muted); line-height: 1.6; font-size: 0.92rem; }
+.row { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 1.1rem; }
+button {
+  height: 3rem;
+  padding: 0 1.4rem;
+  border: 0;
+  border-radius: 0.7rem;
+  background: var(--paper);
+  color: var(--storm);
+  font: 500 0.9rem "Noto Sans TC", sans-serif;
+  cursor: pointer;
+}
+button.ghost {
+  background: transparent;
+  color: var(--paper);
+  border: 1px solid #3a4552;
+}
+button:disabled { opacity: 0.4; cursor: default; }
+button.halt {
+  background: #2e1065;
+  color: var(--violet);
+  border: 1px solid #7c3aed;
+}
+.card {
+  width: min(28rem, 100%);
+  margin: auto 0 0;
+  background: #121a22;
+  border: 1px solid #2a3440;
+  border-radius: 1rem;
+  padding: 1.4rem;
+}
+.card ul { padding-left: 1.1rem; color: var(--muted); line-height: 1.55; }
+#hud {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0.9rem;
+  pointer-events: none;
+}
+.top { display: flex; justify-content: space-between; gap: 0.7rem; }
+.chips { display: flex; gap: 0.4rem; }
+.chip {
+  height: 2.6rem;
+  min-width: 2.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.7rem;
+  border-radius: 0.5rem;
+  background: #1b2430;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.85rem;
+}
+.chip.hot { background: var(--signal); }
+.chip.warn { background: var(--paper); color: var(--storm); }
+.chip.bull { background: rgba(212,72,62,0.2); color: var(--up); }
+.chip.bear { background: rgba(47,143,107,0.2); color: var(--down); }
+#ticker {
+  min-width: 12rem;
+  background: rgba(11,18,24,0.78);
+  border: 1px solid #2a3440;
+  border-radius: 0.5rem;
+  padding: 0.55rem 0.75rem;
+}
+.ticker-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.65rem;
+  color: #7d8896;
+}
+#hsi {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 1.7rem;
+  line-height: 1.1;
+}
+#hsi.up, #delta.up { color: var(--up); }
+#hsi.down, #delta.down { color: var(--down); }
+#hsi.halted { color: var(--violet); }
+#delta { font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; }
+.muted { color: var(--muted); }
+#banner {
+  align-self: center;
+  background: rgba(11,18,24,0.85);
+  border: 1px solid rgba(196,69,60,0.4);
+  border-radius: 0.45rem;
+  padding: 0.45rem 1rem;
+  font-family: "Noto Serif TC", serif;
+  font-size: 0.9rem;
+}
+.bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 0.7rem;
+}
+#stats {
+  background: rgba(11,18,24,0.7);
+  border: 1px solid #2a3440;
+  border-radius: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.78rem;
+  color: #c4ccd6;
+  line-height: 1.45;
+}
+.actions { display: flex; flex-direction: column; gap: 0.4rem; pointer-events: auto; }
+.actions button { pointer-events: auto; height: 2.8rem; }
+@media (max-width: 640px) {
+  .overlay { padding-bottom: 1.5rem; }
+  #stats { margin-bottom: 4.5rem; }
+}
