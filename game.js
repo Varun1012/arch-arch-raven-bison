@@ -11,9 +11,10 @@
   const DASH_MAX = 4;
   const DASH_DUR = 3;
   const DASH_MULT = 3.2;
+  const DASH_CD = 10;
   const LAND_WEAKEN = 5.95 * 0.85;
   const T8_DRAG = 475;
-  const SIG_MULT = { 0: 0, 1: 0.2, 3: 0.5, 8: 1, 9: 2, 10: 4 };
+  const SIG_MULT = { 0: 0, 1: 0.04, 3: 0.1, 8: 1, 9: 2, 10: 4 };
   const NAMES = ["馬鞍","小犬","蘇拉","海葵","泰利","暹芭","軒嵐諾","梅花","楊柳","蝴蝶","韋帕","榕樹"];
   const PLACES = [
     { name: "廣州", lon: 113.26, lat: 23.13, size: 11 },
@@ -283,6 +284,7 @@
       this.leeT = 0;
       this.dashCharges = DASH_MAX;
       this.dashT = 0;
+      this.dashCd = 0;
       this.lastIx = 0;
       this.lastIy = 0;
       this.dashTrail = [];
@@ -333,6 +335,7 @@
       this.leeCd = Math.max(0, this.leeCd - dt);
       if (this.leeT > 0) this.leeT = Math.max(0, this.leeT - dt);
       if (this.dashT > 0) this.dashT = Math.max(0, this.dashT - dt);
+      this.dashCd = Math.max(0, this.dashCd - dt);
       if (this.actEdge || this.just("Space", "spaceWas")) this.tryLee();
       this.actEdge = false;
       if (this.just("KeyF", "fWas")) this.tryHalt();
@@ -409,41 +412,82 @@
       return null;
     }
 
+    spawnOffMap(side) {
+      if (side === "east") {
+        return {
+          lon: EAST + 2.4 + Math.random() * 11,
+          lat: 9.5 + Math.random() * 16,
+          heading: 258 + Math.random() * 30,
+        };
+      }
+      return {
+        lon: 108 + Math.random() * 20,
+        lat: SOUTH - 1.3 - Math.random() * 5.4,
+        heading: (348 + Math.random() * 32) % 360,
+      };
+    }
+
+    headingToHk(lon, lat) {
+      return Math.atan2(this.hk.lon - lon, this.hk.lat - lat) * 180 / Math.PI;
+    }
+
     spawnStorms() {
       if (this.time < this.nextSpawn || this.time > SEASON - 12) return;
       const hard = this.time >= HARD_AT;
       this.nextSpawn += hard ? 3.8 : 5.3;
+      const roll = Math.random();
+      const origin = roll < 0.44 ? "east" : roll < 0.68 ? "south" : "map";
       let pos = null;
-      for (let n = 0; n < 12; n++) {
-        const cand = this.randomOcean();
-        if (!cand) continue;
-        if (distKm(cand.lon, cand.lat, this.hk.lon, this.hk.lat) < 480) continue;
-        pos = cand;
-        break;
+      if (origin === "east" || origin === "south") {
+        for (let n = 0; n < 8; n++) {
+          const cand = this.spawnOffMap(origin);
+          if (distKm(cand.lon, cand.lat, this.hk.lon, this.hk.lat) < 420) continue;
+          pos = cand;
+          break;
+        }
+        if (!pos) pos = this.spawnOffMap(origin);
+      } else {
+        for (let n = 0; n < 12; n++) {
+          const cand = this.randomOcean();
+          if (!cand) continue;
+          if (distKm(cand.lon, cand.lat, this.hk.lon, this.hk.lat) < 480) continue;
+          pos = { lon: cand.lon, lat: cand.lat, heading: 272 + Math.random() * 28 };
+          break;
+        }
+        if (!pos) {
+          const fallback = this.randomOcean();
+          if (fallback) pos = { lon: fallback.lon, lat: fallback.lat, heading: 272 + Math.random() * 28 };
+        }
       }
-      if (!pos) pos = this.randomOcean();
       if (!pos) return;
       const devil = hard && this.devilCount < 4 && Math.random() < (this.devilCount === 0 ? 0.62 : 0.14);
-      const japan = Math.random() < 0.36;
+      const hunt = Math.random() < (devil ? 0.58 : 0.36);
+      const japan = !hunt && origin !== "south" && Math.random() < 0.34;
       const name = NAMES[this.nameI++ % NAMES.length];
       if (devil) this.devilCount += 1;
+      const heading = hunt ? this.headingToHk(pos.lon, pos.lat) : pos.heading;
       this.storms.push({
-        name, lon: pos.lon, lat: pos.lat,
-        heading: 272 + Math.random() * 28,
+        name, lon: pos.lon, lat: pos.lat, heading,
         speed: devil ? 2.05 + Math.random() * 0.55 : 1.68 + Math.random() * 0.72,
         kt: devil ? 102 + Math.random() * 16 : 22 + Math.random() * 10,
         track: [{ lon: pos.lon, lat: pos.lat }],
         age: 0, dead: false,
-        steer: japan ? "japan" : "west",
+        steer: hunt ? "hunt" : japan ? "japan" : "west",
+        origin,
         recurveAt: 4 + Math.random() * 5,
         devil,
       });
-      this.flash(devil ? `魔鬼風暴 ${name} 生成` : `熱帶低氣壓 ${name} 生成`, devil ? 2.4 : 1.8);
+      const where = origin === "east" ? "自太平洋東面逼近" : origin === "south" ? "自南海以南北上" : "生成";
+      const kind = devil ? "魔鬼風暴" : hunt ? "追擊氣旋" : "熱帶低氣壓";
+      this.flash(`${kind} ${name} ${where}`, devil || hunt ? 2.4 : 1.8);
       if (devil) this.trauma = 0.55;
     }
 
     envHeading(s) {
       const wobble = Math.sin(s.age * 0.35 + s.lon) * 12;
+      if (s.steer === "hunt") {
+        return (this.headingToHk(s.lon, s.lat) + wobble * 0.4 + 360) % 360;
+      }
       if (s.steer === "japan") {
         const t = clamp((s.age - s.recurveAt) / 7, 0, 1);
         const e = t * t * (3 - 2 * t);
@@ -459,7 +503,8 @@
       for (const s of this.storms) {
         if (s.dead) continue;
         s.age += dt;
-        let h = lerpHeading(s.heading, this.envHeading(s), 0.08);
+        const turn = s.steer === "hunt" ? 0.14 : 0.08;
+        let h = lerpHeading(s.heading, this.envHeading(s), turn);
         if (field) {
           const dlon = s.lon - this.hk.lon, dlat = s.lat - this.hk.lat;
           const d = Math.hypot(dlon, dlat) || 0.01;
@@ -477,7 +522,8 @@
         s.kt = clamp(s.kt, 0, s.devil ? 165 : 145);
         if (s.age % 0.35 < dt) s.track.push({ lon: s.lon, lat: s.lat });
         if (s.track.length > 90) s.track.shift();
-        if (s.kt < 16 || s.lon < WEST - 2 || s.lon > EAST + 2 || s.lat < SOUTH - 2 || s.lat > NORTH + 2) {
+        const off = s.lon < WEST - 6 || s.lon > EAST + 16 || s.lat < SOUTH - 9 || s.lat > NORTH + 5;
+        if (s.kt < 16 || off) {
           s.dead = true;
           this.dodged += 1;
         }
@@ -589,9 +635,10 @@
 
     tryDash() {
       if (this.paused || this.ended) return;
-      if (this.dashT > 0 || this.dashCharges <= 0) return;
+      if (this.dashT > 0 || this.dashCd > 0 || this.dashCharges <= 0) return;
       this.dashCharges -= 1;
       this.dashT = DASH_DUR;
+      this.dashCd = DASH_CD;
       audio.dash();
       this.flash("快閃移動 · 香港急航三秒", 1.8);
     }
@@ -673,6 +720,7 @@
       this.drawPlaces(ctx, L);
       this.drawStorms(ctx, L);
       this.drawHk(ctx, L);
+      this.drawInbound(ctx, L);
       ctx.restore();
       ctx.strokeStyle = "rgba(231,226,216,0.16)";
       ctx.strokeRect(L.x + 0.5, L.y + 0.5, L.w - 1, L.h - 1);
@@ -722,7 +770,11 @@
     drawTracks(ctx, L) {
       for (const s of this.storms) {
         if (s.track.length < 2) continue;
-        ctx.strokeStyle = s.dead ? "rgba(154,164,178,0.25)" : s.devil ? "rgba(168,130,255,0.7)" : "rgba(196,69,60,0.55)";
+        ctx.strokeStyle = s.dead
+          ? "rgba(154,164,178,0.25)"
+          : s.steer === "hunt"
+            ? "rgba(232,163,90,0.75)"
+            : s.devil ? "rgba(168,130,255,0.7)" : "rgba(196,69,60,0.55)";
         ctx.lineWidth = 1.6;
         ctx.setLineDash([4, 4]);
         ctx.beginPath();
@@ -754,14 +806,14 @@
         const galeKm = s.devil ? 200 : s.kt >= 64 ? 220 : s.kt >= 48 ? 280 : 360;
         const gale = (galeKm / 111) * (L.w / (EAST - WEST));
         ctx.beginPath(); ctx.arc(p.x, p.y, gale, 0, Math.PI * 2);
-        ctx.fillStyle = s.devil ? "rgba(124,58,237,0.18)" : "rgba(196,69,60,0.12)";
+        ctx.fillStyle = s.devil ? "rgba(124,58,237,0.18)" : s.steer === "hunt" ? "rgba(232,163,90,0.16)" : "rgba(196,69,60,0.12)";
         ctx.fill();
-        ctx.strokeStyle = s.devil ? "rgba(196,181,253,0.65)" : "rgba(196,69,60,0.4)";
+        ctx.strokeStyle = s.devil ? "rgba(196,181,253,0.65)" : s.steer === "hunt" ? "rgba(232,163,90,0.55)" : "rgba(196,69,60,0.4)";
         ctx.stroke();
         ctx.save();
         ctx.translate(p.x, p.y);
-        ctx.rotate(this.time * (s.devil ? 2.2 : 1.6));
-        ctx.strokeStyle = s.devil ? "#c4b5fd" : "#e07068";
+        ctx.rotate(this.time * (s.devil ? 2.2 : s.steer === "hunt" ? 1.9 : 1.6));
+        ctx.strokeStyle = s.devil ? "#c4b5fd" : s.steer === "hunt" ? "#e8a35a" : "#e07068";
         ctx.lineWidth = s.devil ? 3.2 : 2.4;
         ctx.beginPath();
         for (let i = 0; i < 2; i++) {
@@ -772,14 +824,45 @@
         ctx.stroke();
         ctx.restore();
         ctx.beginPath(); ctx.arc(p.x, p.y, 3.5, 0, Math.PI * 2);
-        ctx.fillStyle = s.devil ? "#ddd6fe" : "#f0c9c6"; ctx.fill();
-        ctx.fillStyle = s.devil ? "#c4b5fd" : "#e7e2d8";
+        ctx.fillStyle = s.devil ? "#ddd6fe" : s.steer === "hunt" ? "#f3d5a6" : "#f0c9c6"; ctx.fill();
+        ctx.fillStyle = s.devil ? "#c4b5fd" : s.steer === "hunt" ? "#e8a35a" : "#e7e2d8";
         ctx.font = "600 11px 'Noto Sans TC', sans-serif";
         ctx.textAlign = "center";
-        ctx.fillText(s.devil ? `魔鬼 ${s.name}` : s.name, p.x, p.y - r - 6);
+        ctx.fillText(s.devil ? `魔鬼 ${s.name}` : s.steer === "hunt" ? `追 ${s.name}` : s.name, p.x, p.y - r - 6);
         ctx.font = "10px 'IBM Plex Mono', monospace";
         ctx.fillStyle = s.devil ? "rgba(196,181,253,0.9)" : "rgba(231,226,216,0.7)";
         ctx.fillText(`${s.kt.toFixed(0)} kt`, p.x, p.y + r + 12);
+      }
+    }
+
+    drawInbound(ctx, L) {
+      for (const s of this.storms) {
+        if (s.dead) continue;
+        if (s.lon >= WEST && s.lon <= EAST && s.lat >= SOUTH && s.lat <= NORTH) continue;
+        const p = this.xy(s.lon, s.lat, L);
+        const x = clamp(p.x, L.x + 10, L.x + L.w - 10);
+        const y = clamp(p.y, L.y + 10, L.y + L.h - 10);
+        const col = s.devil ? "#c4b5fd" : s.steer === "hunt" ? "#e8a35a" : "#e07068";
+        ctx.fillStyle = col;
+        ctx.beginPath();
+        if (s.lon > EAST) {
+          ctx.moveTo(L.x + L.w - 4, y);
+          ctx.lineTo(L.x + L.w - 14, y - 7);
+          ctx.lineTo(L.x + L.w - 14, y + 7);
+        } else {
+          ctx.moveTo(x, L.y + L.h - 4);
+          ctx.lineTo(x - 7, L.y + L.h - 14);
+          ctx.lineTo(x + 7, L.y + L.h - 14);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.font = "600 10px 'Noto Sans TC', sans-serif";
+        ctx.textAlign = s.lon > EAST ? "right" : "center";
+        ctx.fillText(
+          s.steer === "hunt" ? `追 ${s.name}` : s.name,
+          s.lon > EAST ? L.x + L.w - 16 : x,
+          s.lon > EAST ? y - 10 : L.y + L.h - 18
+        );
       }
     }
 
@@ -892,27 +975,29 @@
       $("stats").innerHTML =
         `風季剩餘 ${fmtTime(Math.max(0, SEASON - g.time))}${g.time >= HARD_AT ? " · 下半季" : ""}<br>` +
         `力場 ${g.leeCharges}/${LEE_MAX}${g.leeT > 0 ? " · 展開中" : ""}<br>` +
-        `快閃 ${g.dashCharges}/${DASH_MAX}${g.dashT > 0 ? ` · ${g.dashT.toFixed(1)}s` : ""}<br>` +
+        `快閃 ${g.dashCharges}/${DASH_MAX}${g.dashT > 0 ? ` · ${g.dashT.toFixed(1)}s` : g.dashCd > 0 ? ` · 冷卻 ${g.dashCd.toFixed(0)}s` : ""}<br>` +
         `停市 ${g.haltCharges}/1${g.haltT > 0 ? " · 生效中" : g.time >= HARD_AT ? "" : " · 下半季解鎖"}<br>` +
         `在場氣旋 ${live} · 消散 ${g.dodged}<br>` +
         `香港 ${g.hk.lat.toFixed(2)}°N ${g.hk.lon.toFixed(2)}°E<br>` +
         `${g._nearest > 0 ? `最近風暴 ${Math.round(g._nearest)} km` : "暫無威脅"}<br>` +
         `<span class="desk-only">WASD 搬遷 · Shift 快閃 · 空白力場 · F 停市 · P 暫停</span>`;
       $("lee").disabled = !(g.leeCharges > 0 && g.leeCd <= 0 && g.leeT <= 0);
-      $("dash").disabled = !(g.dashCharges > 0 && g.dashT <= 0);
+      $("dash").disabled = !(g.dashCharges > 0 && g.dashT <= 0 && g.dashCd <= 0);
       $("halt").disabled = !(g.time >= HARD_AT && g.haltCharges > 0 && g.haltT <= 0);
       const hint = $("hint");
       const hintText = g.haltT > 0
         ? `停市剩餘 ${g.haltT.toFixed(1)} 秒 · 八號未除即完`
         : g.dashT > 0
           ? `快閃剩餘 ${g.dashT.toFixed(1)} 秒`
-          : g.leeCd > 0
-            ? `李氏力場冷卻 ${g.leeCd.toFixed(0)} 秒`
-            : g.dashCharges > 0
-              ? "Shift／E：快閃三秒 · 空白力場 · F 停市"
-              : g.leeCharges > 0
-                ? "空白鍵／力場：發動李氏力場 · F 鍵停市"
-                : "力場與快閃已用盡 · F 鍵可停市一次";
+          : g.dashCd > 0
+            ? `快閃冷卻 ${g.dashCd.toFixed(0)} 秒`
+            : g.leeCd > 0
+              ? `李氏力場冷卻 ${g.leeCd.toFixed(0)} 秒`
+              : g.dashCharges > 0
+                ? "Shift／E：快閃三秒（冷卻十秒）· 空白力場 · F 停市"
+                : g.leeCharges > 0
+                  ? "空白鍵／力場：發動李氏力場 · F 鍵停市"
+                  : "力場與快閃已用盡 · F 鍵可停市一次";
       hint.textContent = hintText;
       hint.classList.remove("hidden");
       drawSpark(g.spark);
