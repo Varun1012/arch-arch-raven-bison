@@ -18,7 +18,7 @@
   const SPAWN_H = 3.8 / 1.5;
   const BEAR_MIN = 14;
   const BEAR_MAX = 96;
-  const SIG_MULT = { 0: 0, 1: 0.04, 3: 0.1, 8: 1, 9: 2, 10: 4 };
+  const SIG_MULT = { 0: 0, 1: 0.04, 3: 0.1, 8: 2, 9: 5, 10: 12 };
   const NAMES = ["馬鞍","小犬","蘇拉","海葵","泰利","暹芭","軒嵐諾","梅花","楊柳","蝴蝶","韋帕","榕樹"];
   const PLACES = [
     { name: "廣州", lon: 113.26, lat: 23.13, size: 11 },
@@ -500,7 +500,7 @@
           : 0;
       this.storms.push({
         name, lon: pos.lon, lat: pos.lat, heading: pos.heading,
-        speed: (superDevil ? 2.7 + Math.random() * 0.55 : devil ? 2.05 + Math.random() * 0.55 : 1.68 + Math.random() * 0.72) * (1 + late * 0.35),
+        speed: (superDevil ? 2.7 + Math.random() * 0.55 : devil ? 2.05 + Math.random() * 0.55 : 1.68 + Math.random() * 0.72) * (1.15 + Math.random() * 0.15) * (1 + late * 0.35),
         kt: superDevil ? 132 + Math.random() * 18 : devil ? 102 + Math.random() * 16 : 22 + Math.random() * 10,
         track: [{ lon: pos.lon, lat: pos.lat }],
         age: 0, dead: false,
