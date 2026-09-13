@@ -7,8 +7,8 @@
   const WEST = 105, EAST = 140, SOUTH = 7, NORTH = 31;
   const MASK_WEST = 100, MASK_EAST = 140, MASK_SOUTH = 7, MASK_NORTH = 36;
   const MOVE = 1.26;
-  const LEE_MAX = 4;
-  const DASH_MAX = 4;
+  const LEE_MAX = 3;
+  const DASH_MAX = 5;
   const DASH_DUR = 3;
   const DASH_MULT = 3.2;
   const DASH_CD = 10;
@@ -653,7 +653,8 @@
 
     tryDash() {
       if (this.paused || this.ended) return;
-      if (this.dashT > 0 || this.dashCd > 0) return;
+      if (this.dashT > 0 || this.dashCd > 0 || this.dashCharges <= 0) return;
+      this.dashCharges -= 1;
       this.dashT = DASH_DUR;
       this.dashCd = DASH_CD;
       audio.dash();
@@ -988,7 +989,7 @@
       $("stats").innerHTML =
         `風季剩餘 ${fmtTime(Math.max(0, SEASON - g.time))}${g.time >= HARD_AT ? " · 下半季" : ""}<br>` +
         `力場 ${g.leeCharges}/${LEE_MAX}${g.leeT > 0 ? " · 展開中" : ""}<br>` +
-        `快閃 不限${g.dashT > 0 ? ` · ${g.dashT.toFixed(1)}s` : g.dashCd > 0 ? ` · 冷卻 ${g.dashCd.toFixed(0)}s` : ""}<br>` +
+        `快閃 ${g.dashCharges}/${DASH_MAX}${g.dashT > 0 ? ` · ${g.dashT.toFixed(1)}s` : g.dashCd > 0 ? ` · 冷卻 ${g.dashCd.toFixed(0)}s` : ""}<br>` +
         `${g.inGaleCircle() ? "滯留風圈 · 熊市延長" : "未入風圈 · 熊市縮短"}<br>` +
         `停市 ${g.haltCharges}/1${g.haltT > 0 ? " · 生效中" : g.time >= HARD_AT ? "" : " · 下半季解鎖"}<br>` +
         `在場氣旋 ${live} · 消散 ${g.dodged}<br>` +
@@ -996,7 +997,7 @@
         `${g._nearest > 0 ? `最近風暴 ${Math.round(g._nearest)} km` : "暫無威脅"}<br>` +
         `<span class="desk-only">WASD 搬遷 · Shift 快閃 · 空白力場 · F 停市 · P 暫停</span>`;
       $("lee").disabled = !(g.leeCharges > 0 && g.leeCd <= 0 && g.leeT <= 0);
-      $("dash").disabled = !(g.dashT <= 0 && g.dashCd <= 0);
+      $("dash").disabled = !(g.dashCharges > 0 && g.dashT <= 0 && g.dashCd <= 0);
       $("halt").disabled = !(g.time >= HARD_AT && g.haltCharges > 0 && g.haltT <= 0);
       const hint = $("hint");
       const hintText = g.haltT > 0
@@ -1008,10 +1009,12 @@
             : g.leeCd > 0
               ? `李氏力場冷卻 ${g.leeCd.toFixed(0)} 秒`
               : g.inGaleCircle()
-                ? "滯留風圈 · 熊市延長 · Shift 快閃不限次"
-                : g.leeCharges > 0
-                  ? "Shift／E：快閃三秒（冷卻十秒、不限次）· 空白力場 · F 停市"
-                  : "力場已用盡 · 快閃冷卻後仍可用 · F 鍵可停市一次";
+                ? "滯留風圈 · 熊市延長 · Shift 快閃五次"
+                : g.dashCharges > 0
+                  ? "Shift／E：快閃三秒（每季五次、冷卻十秒）· 空白力場 · F 停市"
+                  : g.leeCharges > 0
+                    ? "空白鍵／力場：發動李氏力場（每季三次）· F 鍵停市"
+                    : "力場與快閃已用盡 · F 鍵可停市一次";
       hint.textContent = hintText;
       hint.classList.remove("hidden");
       drawSpark(g.spark);
