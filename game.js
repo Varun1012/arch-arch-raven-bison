@@ -40,7 +40,10 @@
     return (a + d * t + 360) % 360;
   };
   const raiseSignal = (cur, next) => (next > cur ? next : cur);
-  const galeRadiusKm = (s) => (s.devil ? 200 : s.kt >= 64 ? 220 : s.kt >= 48 ? 280 : 360);
+  const galeRadiusKm = (s) => {
+    const base = s.devil ? 200 : s.kt >= 64 ? 220 : s.kt >= 48 ? 280 : 360;
+    return base * (s.galeMul ?? (s.devil ? 1.75 : 1));
+  };
   function distKm(lon1, lat1, lon2, lat2) {
     const R = 6371, p1 = lat1 * Math.PI / 180, p2 = lat2 * Math.PI / 180;
     const dp = (lat2 - lat1) * Math.PI / 180, dl = (lon2 - lon1) * Math.PI / 180;
@@ -441,7 +444,7 @@
       const overtime = Math.max(0, this.time - SEASON);
       const hard = this.time >= HARD_AT || this.endless;
       this.nextSpawn += this.endless
-        ? Math.max(1.55, SPAWN_H * (1 - Math.min(0.45, overtime / 240)))
+        ? Math.max(0.75, SPAWN_H * (1 - Math.min(0.72, overtime / 300)))
         : hard
           ? SPAWN_H
           : SPAWN_N;
@@ -470,13 +473,21 @@
         }
       }
       if (!pos) return;
-      const devil = hard && this.devilCount < 4 && Math.random() < (this.devilCount === 0 ? 0.62 : 0.14);
+      let devil = false;
+      if (this.endless) {
+        const p = 0.2 + Math.min(0.48, overtime / 280);
+        devil = Math.random() < p;
+      } else if (hard && this.devilCount < 4) {
+        devil = Math.random() < (this.devilCount === 0 ? 0.62 : 0.14);
+      }
       const japan = origin !== "south" && Math.random() < 0.34;
       const name = NAMES[this.nameI++ % NAMES.length];
       if (devil) this.devilCount += 1;
+      const galeMul = devil ? 1.5 + Math.random() * 0.5 : 1;
+      const late = this.endless ? Math.min(0.85, overtime / 320) : 0;
       this.storms.push({
         name, lon: pos.lon, lat: pos.lat, heading: pos.heading,
-        speed: devil ? 2.05 + Math.random() * 0.55 : 1.68 + Math.random() * 0.72,
+        speed: (devil ? 2.05 + Math.random() * 0.55 : 1.68 + Math.random() * 0.72) * (1 + late * 0.35),
         kt: devil ? 102 + Math.random() * 16 : 22 + Math.random() * 10,
         track: [{ lon: pos.lon, lat: pos.lat }],
         age: 0, dead: false,
@@ -484,6 +495,7 @@
         origin,
         recurveAt: 4 + Math.random() * 5,
         devil,
+        galeMul,
       });
       const where = origin === "east" ? "自太平洋東面逼近" : origin === "south" ? "自南海以南北上" : "於洋面生成";
       this.flash(`${devil ? "魔鬼風暴" : "熱帶低氣壓"} ${name} ${where}`, devil ? 2.4 : 1.8);
@@ -661,12 +673,13 @@
 
     tryDash() {
       if (this.paused || this.ended) return;
-      if (this.dashT > 0 || this.dashCd > 0 || this.dashCharges <= 0) return;
-      this.dashCharges -= 1;
+      if (this.dashT > 0 || this.dashCd > 0) return;
+      if (!this.endless && this.dashCharges <= 0) return;
+      if (!this.endless) this.dashCharges -= 1;
       this.dashT = DASH_DUR;
       this.dashCd = DASH_CD;
       audio.dash();
-      this.flash("快閃移動 · 香港急航三秒", 1.8);
+      this.flash(this.endless ? "快閃移動 · 無盡不限次" : "快閃移動 · 香港急航三秒", 1.8);
     }
 
     tryHalt() {
@@ -705,7 +718,7 @@
       this.awaitingWin = false;
       this.endless = true;
       this.paused = false;
-      this.flash("無盡模式 · 風季之後氣旋仍在", 2.6);
+      this.flash("無盡模式 · 魔鬼風暴仍在 · 快閃不限次", 2.6);
       this.ui.resumePlay();
     }
     leaveWin() {
@@ -1021,7 +1034,7 @@
       $("stats").innerHTML =
         `${g.endless ? `無盡 ${fmtTime(Math.max(0, g.time - SEASON))}` : `風季剩餘 ${fmtTime(Math.max(0, SEASON - g.time))}`}${g.time >= HARD_AT || g.endless ? " · 下半季" : ""}<br>` +
         `力場 ${g.leeCharges}/${LEE_MAX}${g.leeT > 0 ? " · 展開中" : ""}<br>` +
-        `快閃 ${g.dashCharges}/${DASH_MAX}${g.dashT > 0 ? ` · ${g.dashT.toFixed(1)}s` : g.dashCd > 0 ? ` · 冷卻 ${g.dashCd.toFixed(0)}s` : ""}<br>` +
+        `快閃 ${g.endless ? "不限" : `${g.dashCharges}/${DASH_MAX}`}${g.dashT > 0 ? ` · ${g.dashT.toFixed(1)}s` : g.dashCd > 0 ? ` · 冷卻 ${g.dashCd.toFixed(0)}s` : ""}<br>` +
         `${g.inGaleCircle() ? "滯留風圈 · 熊市延長" : "未入風圈 · 熊市縮短"}<br>` +
         `停市 ${g.haltCharges}/1${g.haltT > 0 ? " · 生效中" : g.time >= HARD_AT ? "" : " · 下半季解鎖"}<br>` +
         `在場氣旋 ${live} · 消散 ${g.dodged}<br>` +
@@ -1029,7 +1042,7 @@
         `${g._nearest > 0 ? `最近風暴 ${Math.round(g._nearest)} km` : "暫無威脅"}<br>` +
         `<span class="desk-only">WASD 搬遷 · Shift 快閃 · 空白力場 · F 停市 · P 暫停</span>`;
       $("lee").disabled = !(g.leeCharges > 0 && g.leeCd <= 0 && g.leeT <= 0);
-      $("dash").disabled = !(g.dashCharges > 0 && g.dashT <= 0 && g.dashCd <= 0);
+      $("dash").disabled = !((g.endless || g.dashCharges > 0) && g.dashT <= 0 && g.dashCd <= 0);
       $("halt").disabled = !(g.time >= HARD_AT && g.haltCharges > 0 && g.haltT <= 0);
       const hint = $("hint");
       const hintText = g.haltT > 0
@@ -1038,15 +1051,17 @@
           ? `快閃剩餘 ${g.dashT.toFixed(1)} 秒`
           : g.dashCd > 0
             ? `快閃冷卻 ${g.dashCd.toFixed(0)} 秒`
-            : g.leeCd > 0
-              ? `李氏力場冷卻 ${g.leeCd.toFixed(0)} 秒`
-              : g.inGaleCircle()
-                ? "滯留風圈 · 熊市延長 · Shift 快閃五次"
-                : g.dashCharges > 0
-                  ? "Shift／E：快閃三秒（每季五次、冷卻十秒）· 空白力場 · F 停市"
-                  : g.leeCharges > 0
-                    ? "空白鍵／力場：發動李氏力場（每季三次）· F 鍵停市"
-                    : "力場與快閃已用盡 · F 鍵可停市一次";
+            : g.endless
+              ? "無盡模式 · 魔鬼風暴會再來 · Shift 快閃不限次"
+              : g.leeCd > 0
+                ? `李氏力場冷卻 ${g.leeCd.toFixed(0)} 秒`
+                : g.inGaleCircle()
+                  ? "滯留風圈 · 熊市延長 · Shift 快閃五次"
+                  : g.dashCharges > 0
+                    ? "Shift／E：快閃三秒（每季五次、冷卻十秒）· 空白力場 · F 停市"
+                    : g.leeCharges > 0
+                      ? "空白鍵／力場：發動李氏力場（每季三次）· F 鍵停市"
+                      : "力場與快閃已用盡 · F 鍵可停市一次";
       hint.textContent = hintText;
       hint.classList.remove("hidden");
       drawSpark(g.spark);
