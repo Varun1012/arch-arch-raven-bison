@@ -427,16 +427,12 @@
       };
     }
 
-    headingToHk(lon, lat) {
-      return Math.atan2(this.hk.lon - lon, this.hk.lat - lat) * 180 / Math.PI;
-    }
-
     spawnStorms() {
       if (this.time < this.nextSpawn || this.time > SEASON - 12) return;
       const hard = this.time >= HARD_AT;
       this.nextSpawn += hard ? 3.8 : 5.3;
       const roll = Math.random();
-      const origin = roll < 0.44 ? "east" : roll < 0.68 ? "south" : "map";
+      const origin = roll < 0.55 ? "map" : roll < 0.8 ? "east" : "south";
       let pos = null;
       if (origin === "east" || origin === "south") {
         for (let n = 0; n < 8; n++) {
@@ -447,10 +443,10 @@
         }
         if (!pos) pos = this.spawnOffMap(origin);
       } else {
-        for (let n = 0; n < 12; n++) {
+        for (let n = 0; n < 14; n++) {
           const cand = this.randomOcean();
           if (!cand) continue;
-          if (distKm(cand.lon, cand.lat, this.hk.lon, this.hk.lat) < 480) continue;
+          if (distKm(cand.lon, cand.lat, this.hk.lon, this.hk.lat) < 280) continue;
           pos = { lon: cand.lon, lat: cand.lat, heading: 272 + Math.random() * 28 };
           break;
         }
@@ -461,33 +457,27 @@
       }
       if (!pos) return;
       const devil = hard && this.devilCount < 4 && Math.random() < (this.devilCount === 0 ? 0.62 : 0.14);
-      const hunt = Math.random() < (devil ? 0.58 : 0.36);
-      const japan = !hunt && origin !== "south" && Math.random() < 0.34;
+      const japan = origin !== "south" && Math.random() < 0.34;
       const name = NAMES[this.nameI++ % NAMES.length];
       if (devil) this.devilCount += 1;
-      const heading = hunt ? this.headingToHk(pos.lon, pos.lat) : pos.heading;
       this.storms.push({
-        name, lon: pos.lon, lat: pos.lat, heading,
+        name, lon: pos.lon, lat: pos.lat, heading: pos.heading,
         speed: devil ? 2.05 + Math.random() * 0.55 : 1.68 + Math.random() * 0.72,
         kt: devil ? 102 + Math.random() * 16 : 22 + Math.random() * 10,
         track: [{ lon: pos.lon, lat: pos.lat }],
         age: 0, dead: false,
-        steer: hunt ? "hunt" : japan ? "japan" : "west",
+        steer: japan ? "japan" : "west",
         origin,
         recurveAt: 4 + Math.random() * 5,
         devil,
       });
-      const where = origin === "east" ? "自太平洋東面逼近" : origin === "south" ? "自南海以南北上" : "生成";
-      const kind = devil ? "魔鬼風暴" : hunt ? "追擊氣旋" : "熱帶低氣壓";
-      this.flash(`${kind} ${name} ${where}`, devil || hunt ? 2.4 : 1.8);
+      const where = origin === "east" ? "自太平洋東面逼近" : origin === "south" ? "自南海以南北上" : "於洋面生成";
+      this.flash(`${devil ? "魔鬼風暴" : "熱帶低氣壓"} ${name} ${where}`, devil ? 2.4 : 1.8);
       if (devil) this.trauma = 0.55;
     }
 
     envHeading(s) {
       const wobble = Math.sin(s.age * 0.35 + s.lon) * 12;
-      if (s.steer === "hunt") {
-        return (this.headingToHk(s.lon, s.lat) + wobble * 0.4 + 360) % 360;
-      }
       if (s.steer === "japan") {
         const t = clamp((s.age - s.recurveAt) / 7, 0, 1);
         const e = t * t * (3 - 2 * t);
@@ -503,8 +493,7 @@
       for (const s of this.storms) {
         if (s.dead) continue;
         s.age += dt;
-        const turn = s.steer === "hunt" ? 0.14 : 0.08;
-        let h = lerpHeading(s.heading, this.envHeading(s), turn);
+        let h = lerpHeading(s.heading, this.envHeading(s), 0.08);
         if (field) {
           const dlon = s.lon - this.hk.lon, dlat = s.lat - this.hk.lat;
           const d = Math.hypot(dlon, dlat) || 0.01;
@@ -770,11 +759,7 @@
     drawTracks(ctx, L) {
       for (const s of this.storms) {
         if (s.track.length < 2) continue;
-        ctx.strokeStyle = s.dead
-          ? "rgba(154,164,178,0.25)"
-          : s.steer === "hunt"
-            ? "rgba(232,163,90,0.75)"
-            : s.devil ? "rgba(168,130,255,0.7)" : "rgba(196,69,60,0.55)";
+        ctx.strokeStyle = s.dead ? "rgba(154,164,178,0.25)" : s.devil ? "rgba(168,130,255,0.7)" : "rgba(196,69,60,0.55)";
         ctx.lineWidth = 1.6;
         ctx.setLineDash([4, 4]);
         ctx.beginPath();
@@ -806,14 +791,14 @@
         const galeKm = s.devil ? 200 : s.kt >= 64 ? 220 : s.kt >= 48 ? 280 : 360;
         const gale = (galeKm / 111) * (L.w / (EAST - WEST));
         ctx.beginPath(); ctx.arc(p.x, p.y, gale, 0, Math.PI * 2);
-        ctx.fillStyle = s.devil ? "rgba(124,58,237,0.18)" : s.steer === "hunt" ? "rgba(232,163,90,0.16)" : "rgba(196,69,60,0.12)";
+        ctx.fillStyle = s.devil ? "rgba(124,58,237,0.18)" : "rgba(196,69,60,0.12)";
         ctx.fill();
-        ctx.strokeStyle = s.devil ? "rgba(196,181,253,0.65)" : s.steer === "hunt" ? "rgba(232,163,90,0.55)" : "rgba(196,69,60,0.4)";
+        ctx.strokeStyle = s.devil ? "rgba(196,181,253,0.65)" : "rgba(196,69,60,0.4)";
         ctx.stroke();
         ctx.save();
         ctx.translate(p.x, p.y);
-        ctx.rotate(this.time * (s.devil ? 2.2 : s.steer === "hunt" ? 1.9 : 1.6));
-        ctx.strokeStyle = s.devil ? "#c4b5fd" : s.steer === "hunt" ? "#e8a35a" : "#e07068";
+        ctx.rotate(this.time * (s.devil ? 2.2 : 1.6));
+        ctx.strokeStyle = s.devil ? "#c4b5fd" : "#e07068";
         ctx.lineWidth = s.devil ? 3.2 : 2.4;
         ctx.beginPath();
         for (let i = 0; i < 2; i++) {
@@ -824,11 +809,11 @@
         ctx.stroke();
         ctx.restore();
         ctx.beginPath(); ctx.arc(p.x, p.y, 3.5, 0, Math.PI * 2);
-        ctx.fillStyle = s.devil ? "#ddd6fe" : s.steer === "hunt" ? "#f3d5a6" : "#f0c9c6"; ctx.fill();
-        ctx.fillStyle = s.devil ? "#c4b5fd" : s.steer === "hunt" ? "#e8a35a" : "#e7e2d8";
+        ctx.fillStyle = s.devil ? "#ddd6fe" : "#f0c9c6"; ctx.fill();
+        ctx.fillStyle = s.devil ? "#c4b5fd" : "#e7e2d8";
         ctx.font = "600 11px 'Noto Sans TC', sans-serif";
         ctx.textAlign = "center";
-        ctx.fillText(s.devil ? `魔鬼 ${s.name}` : s.steer === "hunt" ? `追 ${s.name}` : s.name, p.x, p.y - r - 6);
+        ctx.fillText(s.devil ? `魔鬼 ${s.name}` : s.name, p.x, p.y - r - 6);
         ctx.font = "10px 'IBM Plex Mono', monospace";
         ctx.fillStyle = s.devil ? "rgba(196,181,253,0.9)" : "rgba(231,226,216,0.7)";
         ctx.fillText(`${s.kt.toFixed(0)} kt`, p.x, p.y + r + 12);
@@ -842,7 +827,7 @@
         const p = this.xy(s.lon, s.lat, L);
         const x = clamp(p.x, L.x + 10, L.x + L.w - 10);
         const y = clamp(p.y, L.y + 10, L.y + L.h - 10);
-        const col = s.devil ? "#c4b5fd" : s.steer === "hunt" ? "#e8a35a" : "#e07068";
+        const col = s.devil ? "#c4b5fd" : "#e07068";
         ctx.fillStyle = col;
         ctx.beginPath();
         if (s.lon > EAST) {
@@ -859,7 +844,7 @@
         ctx.font = "600 10px 'Noto Sans TC', sans-serif";
         ctx.textAlign = s.lon > EAST ? "right" : "center";
         ctx.fillText(
-          s.steer === "hunt" ? `追 ${s.name}` : s.name,
+          s.name,
           s.lon > EAST ? L.x + L.w - 16 : x,
           s.lon > EAST ? y - 10 : L.y + L.h - 18
         );
