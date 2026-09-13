@@ -7,7 +7,7 @@
 ## How to play
 
 - **WASD / arrows / joystick** — move Hong Kong
-- **Shift / E** — flash dash, 3 seconds, 4 per season, 10s cooldown
+- **Shift / E** — flash dash, 3 seconds, 10s cooldown, unlimited uses
 - **Space** — Lee's Force Field (4 per season, cooldown)
 - **F** — trading halt, 5 seconds, once, last 4 minutes only  
   If Signal No. 8 or above is still in force when the halt ends, the season is over.

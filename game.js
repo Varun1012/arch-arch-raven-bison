@@ -14,6 +14,10 @@
   const DASH_CD = 10;
   const LAND_WEAKEN = 5.95 * 0.85;
   const T8_DRAG = 475;
+  const SPAWN_N = 5.3 / 1.5;
+  const SPAWN_H = 3.8 / 1.5;
+  const BEAR_MIN = 14;
+  const BEAR_MAX = 96;
   const SIG_MULT = { 0: 0, 1: 0.04, 3: 0.1, 8: 1, 9: 2, 10: 4 };
   const NAMES = ["馬鞍","小犬","蘇拉","海葵","泰利","暹芭","軒嵐諾","梅花","楊柳","蝴蝶","韋帕","榕樹"];
   const PLACES = [
@@ -36,6 +40,7 @@
     return (a + d * t + 360) % 360;
   };
   const raiseSignal = (cur, next) => (next > cur ? next : cur);
+  const galeRadiusKm = (s) => (s.devil ? 200 : s.kt >= 64 ? 220 : s.kt >= 48 ? 280 : 360);
   function distKm(lon1, lat1, lon2, lat2) {
     const R = 6371, p1 = lat1 * Math.PI / 180, p2 = lat2 * Math.PI / 180;
     const dp = (lat2 - lat1) * Math.PI / 180, dl = (lon2 - lon1) * Math.PI / 180;
@@ -269,7 +274,8 @@
       this.spark = Array.from({ length: 48 }, () => START_HSI);
       this.sparkT = 0;
       this.cycle = Math.random() < 0.55 ? "bull" : "bear";
-      this.cycleT = 38 + Math.random() * 22;
+      this.bearSpan = 36 + Math.random() * 14;
+      this.cycleT = this.cycle === "bear" ? this.bearSpan : 32 + Math.random() * 16;
       this.signal = 0;
       this.lastSignal = 0;
       this.time = 0;
@@ -430,7 +436,7 @@
     spawnStorms() {
       if (this.time < this.nextSpawn || this.time > SEASON - 12) return;
       const hard = this.time >= HARD_AT;
-      this.nextSpawn += hard ? 3.8 : 5.3;
+      this.nextSpawn += hard ? SPAWN_H : SPAWN_N;
       const roll = Math.random();
       const origin = this.nameI === 0 ? "map" : roll < 0.62 ? "map" : roll < 0.84 ? "east" : "south";
       let pos = null;
@@ -582,12 +588,35 @@
       } else this.signal = sig;
     }
 
+    inGaleCircle() {
+      for (const s of this.storms) {
+        if (s.dead) continue;
+        if (distKm(this.hk.lon, this.hk.lat, s.lon, s.lat) < galeRadiusKm(s)) return true;
+      }
+      return false;
+    }
+
     updateHsi(dt) {
-      this.cycleT -= dt;
+      const inCircle = this.inGaleCircle();
+      if (inCircle) {
+        this.bearSpan = clamp(this.bearSpan + 9 * dt, BEAR_MIN, BEAR_MAX);
+        if (this.cycle === "bear") this.cycleT = Math.min(BEAR_MAX, this.cycleT + 8 * dt);
+        else this.cycleT -= 1.55 * dt;
+      } else {
+        this.bearSpan = clamp(this.bearSpan - 5 * dt, BEAR_MIN, BEAR_MAX);
+        this.cycleT -= this.cycle === "bear" ? 1.5 * dt : dt;
+      }
       if (this.cycleT <= 0) {
         this.cycle = this.cycle === "bull" ? "bear" : "bull";
-        this.cycleT = 36 + Math.random() * 28;
-        this.flash(this.cycle === "bull" ? "牛市展開" : "熊市來襲", 2);
+        this.cycleT = this.cycle === "bear" ? this.bearSpan : 30 + Math.random() * 16;
+        this.flash(
+          this.cycle === "bull"
+            ? "牛市展開"
+            : this.bearSpan > 55
+              ? "漫長熊市來襲 · 風圈滯留所致"
+              : "熊市來襲",
+          2
+        );
         audio.ticker(this.cycle === "bull");
       }
       const axis = this.cycle === "bull" ? 18 : -16;
@@ -624,8 +653,7 @@
 
     tryDash() {
       if (this.paused || this.ended) return;
-      if (this.dashT > 0 || this.dashCd > 0 || this.dashCharges <= 0) return;
-      this.dashCharges -= 1;
+      if (this.dashT > 0 || this.dashCd > 0) return;
       this.dashT = DASH_DUR;
       this.dashCd = DASH_CD;
       audio.dash();
@@ -788,7 +816,7 @@
         if (s.dead) continue;
         const p = this.xy(s.lon, s.lat, L);
         const r = 14 + s.kt * 0.16;
-        const galeKm = s.devil ? 200 : s.kt >= 64 ? 220 : s.kt >= 48 ? 280 : 360;
+        const galeKm = galeRadiusKm(s);
         const gale = (galeKm / 111) * (L.w / (EAST - WEST));
         ctx.beginPath(); ctx.arc(p.x, p.y, gale, 0, Math.PI * 2);
         ctx.fillStyle = s.devil ? "rgba(124,58,237,0.18)" : "rgba(196,69,60,0.12)";
@@ -944,7 +972,7 @@
       sig.textContent = sigLabel(g.signal);
       sig.className = "chip" + (g.signal >= 9 ? " hot" : g.signal === 8 ? " warn" : "");
       const cy = $("cycle");
-      cy.textContent = g.cycle === "bull" ? "牛市" : "熊市";
+      cy.textContent = (g.cycle === "bull" ? "牛市" : "熊市") + " " + Math.max(0, g.cycleT).toFixed(0) + "s";
       cy.className = "chip " + g.cycle;
       const hsi = $("hsi");
       hsi.textContent = fmtHsi(g.hsi);
@@ -960,14 +988,15 @@
       $("stats").innerHTML =
         `風季剩餘 ${fmtTime(Math.max(0, SEASON - g.time))}${g.time >= HARD_AT ? " · 下半季" : ""}<br>` +
         `力場 ${g.leeCharges}/${LEE_MAX}${g.leeT > 0 ? " · 展開中" : ""}<br>` +
-        `快閃 ${g.dashCharges}/${DASH_MAX}${g.dashT > 0 ? ` · ${g.dashT.toFixed(1)}s` : g.dashCd > 0 ? ` · 冷卻 ${g.dashCd.toFixed(0)}s` : ""}<br>` +
+        `快閃 不限${g.dashT > 0 ? ` · ${g.dashT.toFixed(1)}s` : g.dashCd > 0 ? ` · 冷卻 ${g.dashCd.toFixed(0)}s` : ""}<br>` +
+        `${g.inGaleCircle() ? "滯留風圈 · 熊市延長" : "未入風圈 · 熊市縮短"}<br>` +
         `停市 ${g.haltCharges}/1${g.haltT > 0 ? " · 生效中" : g.time >= HARD_AT ? "" : " · 下半季解鎖"}<br>` +
         `在場氣旋 ${live} · 消散 ${g.dodged}<br>` +
         `香港 ${g.hk.lat.toFixed(2)}°N ${g.hk.lon.toFixed(2)}°E<br>` +
         `${g._nearest > 0 ? `最近風暴 ${Math.round(g._nearest)} km` : "暫無威脅"}<br>` +
         `<span class="desk-only">WASD 搬遷 · Shift 快閃 · 空白力場 · F 停市 · P 暫停</span>`;
       $("lee").disabled = !(g.leeCharges > 0 && g.leeCd <= 0 && g.leeT <= 0);
-      $("dash").disabled = !(g.dashCharges > 0 && g.dashT <= 0 && g.dashCd <= 0);
+      $("dash").disabled = !(g.dashT <= 0 && g.dashCd <= 0);
       $("halt").disabled = !(g.time >= HARD_AT && g.haltCharges > 0 && g.haltT <= 0);
       const hint = $("hint");
       const hintText = g.haltT > 0
@@ -978,11 +1007,11 @@
             ? `快閃冷卻 ${g.dashCd.toFixed(0)} 秒`
             : g.leeCd > 0
               ? `李氏力場冷卻 ${g.leeCd.toFixed(0)} 秒`
-              : g.dashCharges > 0
-                ? "Shift／E：快閃三秒（冷卻十秒）· 空白力場 · F 停市"
+              : g.inGaleCircle()
+                ? "滯留風圈 · 熊市延長 · Shift 快閃不限次"
                 : g.leeCharges > 0
-                  ? "空白鍵／力場：發動李氏力場 · F 鍵停市"
-                  : "力場與快閃已用盡 · F 鍵可停市一次";
+                  ? "Shift／E：快閃三秒（冷卻十秒、不限次）· 空白力場 · F 停市"
+                  : "力場已用盡 · 快閃冷卻後仍可用 · F 鍵可停市一次";
       hint.textContent = hintText;
       hint.classList.remove("hidden");
       drawSpark(g.spark);
