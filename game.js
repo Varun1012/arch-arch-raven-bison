@@ -432,7 +432,7 @@
       const hard = this.time >= HARD_AT;
       this.nextSpawn += hard ? 3.8 : 5.3;
       const roll = Math.random();
-      const origin = roll < 0.55 ? "map" : roll < 0.8 ? "east" : "south";
+      const origin = this.nameI === 0 ? "map" : roll < 0.62 ? "map" : roll < 0.84 ? "east" : "south";
       let pos = null;
       if (origin === "east" || origin === "south") {
         for (let n = 0; n < 8; n++) {
