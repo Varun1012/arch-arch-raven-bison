@@ -334,11 +334,9 @@
     step(dt) {
       this.time += dt;
       this.moveHk(dt);
-      if (this.haltT <= 0) {
-        this.spawnStorms();
-        this.moveStorms(dt);
-        this.applyFujiwhara(dt);
-      }
+      this.moveStorms(dt);
+      this.applyFujiwhara(dt);
+      if (this.haltT <= 0) this.spawnStorms();
       this.updateSignal();
       if (this.haltT > 0) {
         this.haltT = Math.max(0, this.haltT - dt);
@@ -704,7 +702,7 @@
       this.haltCharges -= 1;
       this.haltT = 5;
       audio.board();
-      this.flash("停市五秒 · 八號或以上未除則強制收市", 2.4);
+      this.flash("停市五秒 · 氣旋不停 · 八號未除則強制收市", 2.4);
     }
 
     finishHalt() {
@@ -1062,7 +1060,7 @@
       $("halt").disabled = !(g.time >= HARD_AT && g.haltCharges > 0 && g.haltT <= 0);
       const hint = $("hint");
       const hintText = g.haltT > 0
-        ? `停市剩餘 ${g.haltT.toFixed(1)} 秒 · 八號未除即完`
+        ? `停市剩餘 ${g.haltT.toFixed(1)} 秒 · 氣旋仍在移動`
         : g.dashT > 0
           ? `快閃剩餘 ${g.dashT.toFixed(1)} 秒`
           : g.dashCd > 0
