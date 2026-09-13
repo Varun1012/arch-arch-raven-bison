@@ -105,6 +105,11 @@ button.halt {
   color: var(--violet);
   border: 1px solid #7c3aed;
 }
+button.dash {
+  background: #0e3a45;
+  color: #6ec4d8;
+  border: 1px solid #2a8aa0;
+}
 button.icon {
   pointer-events: auto;
   width: 2.6rem;
@@ -271,7 +276,7 @@ button.icon {
   border-radius: 50%;
   background: rgba(231,226,216,0.8);
 }
-#leeTouch, #haltTouch {
+#leeTouch, #haltTouch, #dashTouch {
   pointer-events: auto;
   position: absolute;
   right: 1.1rem;
@@ -282,13 +287,14 @@ button.icon {
   font-size: 0.72rem;
 }
 #leeTouch { bottom: 1.8rem; }
-#haltTouch { bottom: 6.4rem; }
+#dashTouch { bottom: 6.4rem; }
+#haltTouch { bottom: 11rem; }
 @media (min-width: 640px) {
   #touch { display: none !important; }
 }
 @media (max-width: 639px) {
   .desktop { display: none; }
-  #stats { margin-bottom: 9rem; }
+  #stats { margin-bottom: 13rem; }
   .overlay { padding-bottom: 1.5rem; }
   .desk-only { display: none; }
 }

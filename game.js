@@ -8,6 +8,10 @@
   const MASK_WEST = 100, MASK_EAST = 140, MASK_SOUTH = 7, MASK_NORTH = 36;
   const MOVE = 1.26;
   const LEE_MAX = 4;
+  const DASH_MAX = 4;
+  const DASH_DUR = 3;
+  const DASH_MULT = 3.2;
+  const LAND_WEAKEN = 5.95 * 0.85;
   const T8_DRAG = 475;
   const SIG_MULT = { 0: 0, 1: 0.2, 3: 0.5, 8: 1, 9: 2, 10: 4 };
   const NAMES = ["馬鞍","小犬","蘇拉","海葵","泰利","暹芭","軒嵐諾","梅花","楊柳","蝴蝶","韋帕","榕樹"];
@@ -180,6 +184,7 @@
     win() { this.beep(523, 0.18, "sine", 0.08); setTimeout(() => this.beep(659, 0.18, "sine", 0.08), 140); setTimeout(() => this.beep(784, 0.3, "sine", 0.09), 280); },
     lose() { this.beep(220, 0.4, "triangle", 0.1, -140); },
     field() { this.beep(523, 0.12, "sine", 0.09); this.beep(784, 0.28, "triangle", 0.07); },
+    dash() { this.beep(880, 0.1, "square", 0.07, 420); this.beep(1320, 0.22, "triangle", 0.06, -200); },
     resume() { if (this.ctx && this.ctx.state === "suspended") void this.ctx.resume(); },
   };
 
@@ -191,6 +196,7 @@
       this.keys = new Set();
       this.stick = { x: 0, y: 0 };
       this.actEdge = false;
+      this.dashEdge = false;
       this.map = null;
       this.running = false;
       this.ended = false;
@@ -275,6 +281,11 @@
       this.leeCharges = LEE_MAX;
       this.leeCd = 0;
       this.leeT = 0;
+      this.dashCharges = DASH_MAX;
+      this.dashT = 0;
+      this.lastIx = 0;
+      this.lastIy = 0;
+      this.dashTrail = [];
       this.dodged = 0;
       this.nameI = 0;
       this.nextSpawn = 0.8;
@@ -284,6 +295,8 @@
       this.heading = 0;
       this.spaceWas = false;
       this.fWas = false;
+      this.eWas = false;
+      this.shiftWas = false;
       this.haltCharges = 1;
       this.haltT = 0;
       this.hardAnnounced = false;
@@ -291,6 +304,7 @@
       this._nearest = 0;
       this.lastHud = 0;
       this.actEdge = false;
+      this.dashEdge = false;
       audio.setStorm(0);
     }
 
@@ -318,9 +332,15 @@
       } else this.updateHsi(dt);
       this.leeCd = Math.max(0, this.leeCd - dt);
       if (this.leeT > 0) this.leeT = Math.max(0, this.leeT - dt);
+      if (this.dashT > 0) this.dashT = Math.max(0, this.dashT - dt);
       if (this.actEdge || this.just("Space", "spaceWas")) this.tryLee();
       this.actEdge = false;
       if (this.just("KeyF", "fWas")) this.tryHalt();
+      const shiftNow = this.keys.has("ShiftLeft") || this.keys.has("ShiftRight");
+      const shiftEdge = shiftNow && !this.shiftWas;
+      this.shiftWas = shiftNow;
+      if (this.dashEdge || this.just("KeyE", "eWas") || shiftEdge) this.tryDash();
+      this.dashEdge = false;
       if (!this.hardAnnounced && this.time >= HARD_AT) {
         this.hardAnnounced = true;
         this.flash("下半季開始 · 魔鬼風暴可能生成", 2.5);
@@ -359,10 +379,19 @@
       if (this.keys.has("KeyS") || this.keys.has("ArrowDown")) iy += 1;
       const m = Math.hypot(ix, iy);
       if (m > 1) { ix /= m; iy /= m; }
-      this.hk.vx = ix * MOVE;
-      this.hk.vy = -iy * MOVE;
+      if (m > 0.12) { this.lastIx = ix; this.lastIy = iy; }
+      const dash = this.dashT > 0;
+      const useX = m > 0.12 ? ix : dash ? this.lastIx : 0;
+      const useY = m > 0.12 ? iy : dash ? this.lastIy : 0;
+      const speed = dash ? MOVE * DASH_MULT : MOVE;
+      this.hk.vx = useX * speed;
+      this.hk.vy = -useY * speed;
       this.hk.lon = clamp(this.hk.lon + this.hk.vx * dt, WEST + 0.6, EAST - 0.6);
       this.hk.lat = clamp(this.hk.lat + this.hk.vy * dt, SOUTH + 0.6, NORTH - 0.6);
+      if (dash) {
+        this.dashTrail.push({ lon: this.hk.lon, lat: this.hk.lat });
+        if (this.dashTrail.length > 22) this.dashTrail.shift();
+      } else if (this.dashTrail.length) this.dashTrail.shift();
     }
 
     randomOcean() {
@@ -443,7 +472,7 @@
         const rad = s.heading * Math.PI / 180;
         s.lon += Math.sin(rad) * s.speed * dt;
         s.lat += Math.cos(rad) * s.speed * dt;
-        if (this.isLand(s.lon, s.lat)) s.kt -= 5.95 * dt;
+        if (this.isLand(s.lon, s.lat)) s.kt -= LAND_WEAKEN * dt;
         else s.kt += (s.kt < 34 ? 1.6 : s.kt < 64 ? 1.1 : s.kt < 95 ? 0.55 : 0.15) * dt;
         s.kt = clamp(s.kt, 0, s.devil ? 165 : 145);
         if (s.age % 0.35 < dt) s.track.push({ lon: s.lon, lat: s.lat });
@@ -556,6 +585,15 @@
       audio.field();
       this.flash("李氏力場展開 · 氣旋受拒", 2);
       this.trauma = 0.25;
+    }
+
+    tryDash() {
+      if (this.paused || this.ended) return;
+      if (this.dashT > 0 || this.dashCharges <= 0) return;
+      this.dashCharges -= 1;
+      this.dashT = DASH_DUR;
+      audio.dash();
+      this.flash("快閃移動 · 香港急航三秒", 1.8);
     }
 
     tryHalt() {
@@ -748,6 +786,17 @@
     drawHk(ctx, L) {
       const p = this.xy(this.hk.lon, this.hk.lat, L);
       const home = this.xy(HK0.lon, HK0.lat, L);
+      if (this.dashTrail && this.dashTrail.length > 1) {
+        ctx.strokeStyle = "rgba(110,196,216,0.55)";
+        ctx.lineWidth = 3;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        this.dashTrail.forEach((t, i) => {
+          const q = this.xy(t.lon, t.lat, L);
+          if (i === 0) ctx.moveTo(q.x, q.y); else ctx.lineTo(q.x, q.y);
+        });
+        ctx.stroke();
+      }
       if (Math.hypot(this.hk.lon - HK0.lon, this.hk.lat - HK0.lat) > 0.35) {
         ctx.setLineDash([4, 3]);
         ctx.beginPath(); ctx.moveTo(home.x, home.y); ctx.lineTo(p.x, p.y);
@@ -767,6 +816,11 @@
         ctx.strokeStyle = "rgba(201,161,91,0.85)"; ctx.lineWidth = 2; ctx.stroke();
         ctx.fillStyle = "rgba(201,161,91,0.12)"; ctx.fill();
       }
+      if (this.dashT > 0) {
+        const rad = 16 + 6 * Math.sin(this.time * 14);
+        ctx.beginPath(); ctx.arc(p.x, p.y, rad, 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(110,196,216,0.9)"; ctx.lineWidth = 2; ctx.stroke();
+      }
       ctx.beginPath();
       for (let i = 0; i < 5; i++) {
         const a = -Math.PI / 2 + (i * 2 * Math.PI) / 5;
@@ -778,12 +832,12 @@
         ctx.lineTo(p.x + Math.cos(b) * 3.4, p.y + Math.sin(b) * 3.4);
       }
       ctx.closePath();
-      ctx.fillStyle = "#e7e2d8"; ctx.fill();
-      ctx.strokeStyle = "#c4453c"; ctx.lineWidth = 1.6; ctx.stroke();
+      ctx.fillStyle = this.dashT > 0 ? "#d8f4fa" : "#e7e2d8"; ctx.fill();
+      ctx.strokeStyle = this.dashT > 0 ? "#6ec4d8" : "#c4453c"; ctx.lineWidth = 1.6; ctx.stroke();
       ctx.fillStyle = "#e7e2d8";
       ctx.font = "700 13px 'Noto Sans TC', sans-serif";
       ctx.textAlign = "left";
-      ctx.fillText("香港", p.x + 10, p.y - 6);
+      ctx.fillText(this.dashT > 0 ? "香港 · 快閃" : "香港", p.x + 10, p.y - 6);
     }
   }
 
@@ -838,21 +892,27 @@
       $("stats").innerHTML =
         `風季剩餘 ${fmtTime(Math.max(0, SEASON - g.time))}${g.time >= HARD_AT ? " · 下半季" : ""}<br>` +
         `力場 ${g.leeCharges}/${LEE_MAX}${g.leeT > 0 ? " · 展開中" : ""}<br>` +
+        `快閃 ${g.dashCharges}/${DASH_MAX}${g.dashT > 0 ? ` · ${g.dashT.toFixed(1)}s` : ""}<br>` +
         `停市 ${g.haltCharges}/1${g.haltT > 0 ? " · 生效中" : g.time >= HARD_AT ? "" : " · 下半季解鎖"}<br>` +
         `在場氣旋 ${live} · 消散 ${g.dodged}<br>` +
         `香港 ${g.hk.lat.toFixed(2)}°N ${g.hk.lon.toFixed(2)}°E<br>` +
         `${g._nearest > 0 ? `最近風暴 ${Math.round(g._nearest)} km` : "暫無威脅"}<br>` +
-        `<span class="desk-only">WASD 搬遷 · 空白力場 · F 停市 · P 暫停</span>`;
+        `<span class="desk-only">WASD 搬遷 · Shift 快閃 · 空白力場 · F 停市 · P 暫停</span>`;
       $("lee").disabled = !(g.leeCharges > 0 && g.leeCd <= 0 && g.leeT <= 0);
+      $("dash").disabled = !(g.dashCharges > 0 && g.dashT <= 0);
       $("halt").disabled = !(g.time >= HARD_AT && g.haltCharges > 0 && g.haltT <= 0);
       const hint = $("hint");
       const hintText = g.haltT > 0
         ? `停市剩餘 ${g.haltT.toFixed(1)} 秒 · 八號未除即完`
-        : g.leeCd > 0
-          ? `李氏力場冷卻 ${g.leeCd.toFixed(0)} 秒`
-          : g.leeCharges > 0
-            ? "空白鍵／力場：發動李氏力場 · F 鍵停市"
-            : "力場次數已用盡 · F 鍵可停市一次";
+        : g.dashT > 0
+          ? `快閃剩餘 ${g.dashT.toFixed(1)} 秒`
+          : g.leeCd > 0
+            ? `李氏力場冷卻 ${g.leeCd.toFixed(0)} 秒`
+            : g.dashCharges > 0
+              ? "Shift／E：快閃三秒 · 空白力場 · F 停市"
+              : g.leeCharges > 0
+                ? "空白鍵／力場：發動李氏力場 · F 鍵停市"
+                : "力場與快閃已用盡 · F 鍵可停市一次";
       hint.textContent = hintText;
       hint.classList.remove("hidden");
       drawSpark(g.spark);
@@ -943,8 +1003,10 @@
     }
   };
   $("lee").onclick = () => game.tryLee();
+  $("dash").onclick = () => game.tryDash();
   $("halt").onclick = () => game.tryHalt();
   $("leeTouch").onpointerdown = (e) => { e.preventDefault(); game.actEdge = true; };
+  $("dashTouch").onpointerdown = (e) => { e.preventDefault(); game.tryDash(); };
   $("haltTouch").onpointerdown = (e) => { e.preventDefault(); game.tryHalt(); };
   $("pauseBtn").onclick = () => game.pause(true);
   $("resume").onclick = () => game.pause(false);
