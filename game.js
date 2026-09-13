@@ -41,8 +41,8 @@
   };
   const raiseSignal = (cur, next) => (next > cur ? next : cur);
   const galeRadiusKm = (s) => {
-    const base = s.devil ? 200 : s.kt >= 64 ? 220 : s.kt >= 48 ? 280 : 360;
-    return base * (s.galeMul ?? (s.devil ? 1.75 : 1));
+    const base = s.super || s.devil ? 200 : s.kt >= 64 ? 220 : s.kt >= 48 ? 280 : 360;
+    return base * (s.galeMul ?? (s.super ? 2.4 : s.devil ? 1.75 : 1));
   };
   function distKm(lon1, lat1, lon2, lat2) {
     const R = 6371, p1 = lat1 * Math.PI / 180, p2 = lat2 * Math.PI / 180;
@@ -314,6 +314,7 @@
       this.haltT = 0;
       this.hardAnnounced = false;
       this.devilCount = 0;
+      this.superCount = 0;
       this._nearest = 0;
       this.lastHud = 0;
       this.actEdge = false;
@@ -357,7 +358,7 @@
       this.dashEdge = false;
       if (!this.hardAnnounced && this.time >= HARD_AT) {
         this.hardAnnounced = true;
-        this.flash("下半季開始 · 魔鬼風暴可能生成", 2.5);
+        this.flash("下半季開始 · 超級魔鬼風暴可能生成", 2.6);
         this.trauma = 0.35;
       }
       this.trauma = Math.max(0, this.trauma - dt * 1.4);
@@ -474,32 +475,47 @@
       }
       if (!pos) return;
       let devil = false;
+      let superDevil = false;
       if (this.endless) {
-        const p = 0.2 + Math.min(0.48, overtime / 280);
-        devil = Math.random() < p;
-      } else if (hard && this.devilCount < 4) {
-        devil = Math.random() < (this.devilCount === 0 ? 0.62 : 0.14);
+        const pSuper = 0.08 + Math.min(0.2, overtime / 300);
+        const pDevil = 0.2 + Math.min(0.4, overtime / 280);
+        if (Math.random() < pSuper) superDevil = true;
+        else if (Math.random() < pDevil) devil = true;
+      } else if (this.time >= HARD_AT) {
+        if (this.superCount < 2 && Math.random() < 0.11) superDevil = true;
+        else if (this.devilCount < 7 && Math.random() < 0.24) devil = true;
+      } else if (this.devilCount < 4 && Math.random() < 0.16) {
+        devil = true;
       }
+      if (superDevil) devil = true;
       const japan = origin !== "south" && Math.random() < 0.34;
       const name = NAMES[this.nameI++ % NAMES.length];
       if (devil) this.devilCount += 1;
-      const galeMul = devil ? 1.5 + Math.random() * 0.5 : 1;
-      const late = this.endless ? Math.min(0.85, overtime / 320) : 0;
+      if (superDevil) this.superCount += 1;
+      const galeMul = superDevil ? 2.2 + Math.random() * 0.4 : devil ? 1.5 + Math.random() * 0.5 : 1;
+      const late = this.endless
+        ? Math.min(0.95, overtime / 280)
+        : this.time >= HARD_AT
+          ? 0.22
+          : 0;
       this.storms.push({
         name, lon: pos.lon, lat: pos.lat, heading: pos.heading,
-        speed: (devil ? 2.05 + Math.random() * 0.55 : 1.68 + Math.random() * 0.72) * (1 + late * 0.35),
-        kt: devil ? 102 + Math.random() * 16 : 22 + Math.random() * 10,
+        speed: (superDevil ? 2.7 + Math.random() * 0.55 : devil ? 2.05 + Math.random() * 0.55 : 1.68 + Math.random() * 0.72) * (1 + late * 0.35),
+        kt: superDevil ? 132 + Math.random() * 18 : devil ? 102 + Math.random() * 16 : 22 + Math.random() * 10,
         track: [{ lon: pos.lon, lat: pos.lat }],
         age: 0, dead: false,
         steer: japan ? "japan" : "west",
         origin,
         recurveAt: 4 + Math.random() * 5,
         devil,
+        super: superDevil,
         galeMul,
       });
       const where = origin === "east" ? "自太平洋東面逼近" : origin === "south" ? "自南海以南北上" : "於洋面生成";
-      this.flash(`${devil ? "魔鬼風暴" : "熱帶低氣壓"} ${name} ${where}`, devil ? 2.4 : 1.8);
-      if (devil) this.trauma = 0.55;
+      const kind = superDevil ? "超級魔鬼風暴" : devil ? "魔鬼風暴" : "熱帶低氣壓";
+      this.flash(`${kind} ${name} ${where}`, superDevil ? 2.8 : devil ? 2.4 : 1.8);
+      if (superDevil) this.trauma = 0.72;
+      else if (devil) this.trauma = 0.55;
     }
 
     envHeading(s) {
@@ -534,7 +550,7 @@
         s.lat += Math.cos(rad) * s.speed * dt;
         if (this.isLand(s.lon, s.lat)) s.kt -= LAND_WEAKEN * dt;
         else s.kt += (s.kt < 34 ? 1.6 : s.kt < 64 ? 1.1 : s.kt < 95 ? 0.55 : 0.15) * dt;
-        s.kt = clamp(s.kt, 0, s.devil ? 165 : 145);
+        s.kt = clamp(s.kt, 0, s.super ? 190 : s.devil ? 165 : 145);
         if (s.age % 0.35 < dt) s.track.push({ lon: s.lon, lat: s.lat });
         if (s.track.length > 90) s.track.shift();
         const off = s.lon < WEST - 6 || s.lon > EAST + 16 || s.lat < SOUTH - 9 || s.lat > NORTH + 5;
@@ -718,7 +734,7 @@
       this.awaitingWin = false;
       this.endless = true;
       this.paused = false;
-      this.flash("無盡模式 · 魔鬼風暴仍在 · 快閃不限次", 2.6);
+      this.flash("無盡模式 · 超級魔鬼延續 · 快閃不限次", 2.6);
       this.ui.resumePlay();
     }
     leaveWin() {
@@ -833,7 +849,7 @@
     drawTracks(ctx, L) {
       for (const s of this.storms) {
         if (s.track.length < 2) continue;
-        ctx.strokeStyle = s.dead ? "rgba(154,164,178,0.25)" : s.devil ? "rgba(168,130,255,0.7)" : "rgba(196,69,60,0.55)";
+        ctx.strokeStyle = s.dead ? "rgba(154,164,178,0.25)" : s.super ? "rgba(244,114,182,0.8)" : s.devil ? "rgba(168,130,255,0.7)" : "rgba(196,69,60,0.55)";
         ctx.lineWidth = 1.6;
         ctx.setLineDash([4, 4]);
         ctx.beginPath();
@@ -865,15 +881,15 @@
         const galeKm = galeRadiusKm(s);
         const gale = (galeKm / 111) * (L.w / (EAST - WEST));
         ctx.beginPath(); ctx.arc(p.x, p.y, gale, 0, Math.PI * 2);
-        ctx.fillStyle = s.devil ? "rgba(124,58,237,0.18)" : "rgba(196,69,60,0.12)";
+        ctx.fillStyle = s.super ? "rgba(190,24,93,0.22)" : s.devil ? "rgba(124,58,237,0.18)" : "rgba(196,69,60,0.12)";
         ctx.fill();
-        ctx.strokeStyle = s.devil ? "rgba(196,181,253,0.65)" : "rgba(196,69,60,0.4)";
+        ctx.strokeStyle = s.super ? "rgba(251,113,133,0.8)" : s.devil ? "rgba(196,181,253,0.65)" : "rgba(196,69,60,0.4)";
         ctx.stroke();
         ctx.save();
         ctx.translate(p.x, p.y);
-        ctx.rotate(this.time * (s.devil ? 2.2 : 1.6));
-        ctx.strokeStyle = s.devil ? "#c4b5fd" : "#e07068";
-        ctx.lineWidth = s.devil ? 3.2 : 2.4;
+        ctx.rotate(this.time * (s.super ? 2.8 : s.devil ? 2.2 : 1.6));
+        ctx.strokeStyle = s.super ? "#fb7185" : s.devil ? "#c4b5fd" : "#e07068";
+        ctx.lineWidth = s.super ? 4.2 : s.devil ? 3.2 : 2.4;
         ctx.beginPath();
         for (let i = 0; i < 2; i++) {
           ctx.rotate(Math.PI);
@@ -883,13 +899,13 @@
         ctx.stroke();
         ctx.restore();
         ctx.beginPath(); ctx.arc(p.x, p.y, 3.5, 0, Math.PI * 2);
-        ctx.fillStyle = s.devil ? "#ddd6fe" : "#f0c9c6"; ctx.fill();
-        ctx.fillStyle = s.devil ? "#c4b5fd" : "#e7e2d8";
+        ctx.fillStyle = s.super ? "#fecdd3" : s.devil ? "#ddd6fe" : "#f0c9c6"; ctx.fill();
+        ctx.fillStyle = s.super ? "#fb7185" : s.devil ? "#c4b5fd" : "#e7e2d8";
         ctx.font = "600 11px 'Noto Sans TC', sans-serif";
         ctx.textAlign = "center";
-        ctx.fillText(s.devil ? `魔鬼 ${s.name}` : s.name, p.x, p.y - r - 6);
+        ctx.fillText(s.super ? `超魔 ${s.name}` : s.devil ? `魔鬼 ${s.name}` : s.name, p.x, p.y - r - 6);
         ctx.font = "10px 'IBM Plex Mono', monospace";
-        ctx.fillStyle = s.devil ? "rgba(196,181,253,0.9)" : "rgba(231,226,216,0.7)";
+        ctx.fillStyle = s.super ? "rgba(251,113,133,0.95)" : s.devil ? "rgba(196,181,253,0.9)" : "rgba(231,226,216,0.7)";
         ctx.fillText(`${s.kt.toFixed(0)} kt`, p.x, p.y + r + 12);
       }
     }
@@ -901,7 +917,7 @@
         const p = this.xy(s.lon, s.lat, L);
         const x = clamp(p.x, L.x + 10, L.x + L.w - 10);
         const y = clamp(p.y, L.y + 10, L.y + L.h - 10);
-        const col = s.devil ? "#c4b5fd" : "#e07068";
+        const col = s.super ? "#fb7185" : s.devil ? "#c4b5fd" : "#e07068";
         ctx.fillStyle = col;
         ctx.beginPath();
         if (s.lon > EAST) {
@@ -1052,7 +1068,7 @@
           : g.dashCd > 0
             ? `快閃冷卻 ${g.dashCd.toFixed(0)} 秒`
             : g.endless
-              ? "無盡模式 · 魔鬼風暴會再來 · Shift 快閃不限次"
+              ? "無盡模式 · 超級魔鬼會再來 · Shift 快閃不限次"
               : g.leeCd > 0
                 ? `李氏力場冷卻 ${g.leeCd.toFixed(0)} 秒`
                 : g.inGaleCircle()
