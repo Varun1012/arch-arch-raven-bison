@@ -3,13 +3,6 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-concurrency:
-  group: pages
-  cancel-in-progress: false
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -22,24 +15,17 @@ jobs:
           test -f styles.css
           test -f maps/east-asia.json
           grep -q "八號風球" index.html
-  deploy:
-    needs: check
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Assemble site
+      - name: Live GitHub Pages
         run: |
-          mkdir -p _site
-          cp index.html game.js styles.css favicon.svg og.jpg x-banner.jpg _site/
-          cp -r maps _site/maps
-      - uses: actions/configure-pages@v5
-        with:
-          enablement: true
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: _site
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          set -e
+          for i in 1 2 3 4 5; do
+            code=$(curl -sS -o /tmp/body -w '%{http_code}' --max-time 20 https://varun1012.github.io/arch-arch-raven-bison/ || echo 000)
+            echo "try $i -> $code"
+            if [ "$code" = "200" ] && grep -q "八號風球" /tmp/body; then
+              echo "Live OK"
+              exit 0
+            fi
+            sleep 8
+          done
+          echo "Pages did not return the game"
+          exit 1
