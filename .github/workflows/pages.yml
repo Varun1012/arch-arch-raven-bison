@@ -14,4 +14,17 @@ jobs:
           test -f game.js
           test -f styles.css
           test -f maps/east-asia.json
-          echo "Live: https://varun1012.github.io/arch-arch-raven-bison/"
+      - name: Live GitHub Pages
+        run: |
+          set -e
+          for i in 1 2 3 4 5; do
+            code=$(curl -sS -o /tmp/body -w '%{http_code}' --max-time 20 https://varun1012.github.io/arch-arch-raven-bison/ || echo 000)
+            echo "try $i -> $code"
+            if [ "$code" = "200" ] && grep -q "八號風球" /tmp/body; then
+              echo "Live OK"
+              exit 0
+            fi
+            sleep 8
+          done
+          echo "Pages did not return the game"
+          exit 1

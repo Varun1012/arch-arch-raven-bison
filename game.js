@@ -259,7 +259,7 @@
     }
 
     pause(v) {
-      if (this.ended || !this.running) return;
+      if (this.ended || !this.running || this.awaitingWin) return;
       this.paused = v;
       this.ui.pause(v);
     }
@@ -281,6 +281,8 @@
       this.time = 0;
       this.ended = false;
       this.paused = false;
+      this.endless = false;
+      this.awaitingWin = false;
       this.loseKind = null;
       this.banner = this.cycle === "bull" ? "牛市展開 · 恆指以兩萬點開市" : "熊市開局 · 仍以兩萬點起步";
       this.bannerT = 2.6;
@@ -369,7 +371,7 @@
         this.lastHud = 0;
         this.pushHud();
       }
-      if (this.time >= SEASON && !this.ended) this.win();
+      if (this.time >= SEASON && !this.ended && !this.endless && !this.awaitingWin) this.offerWin();
       if (this.hsi <= 0 && !this.ended) this.lose("zero");
     }
 
@@ -434,9 +436,15 @@
     }
 
     spawnStorms() {
-      if (this.time < this.nextSpawn || this.time > SEASON - 12) return;
-      const hard = this.time >= HARD_AT;
-      this.nextSpawn += hard ? SPAWN_H : SPAWN_N;
+      if (this.time < this.nextSpawn) return;
+      if (!this.endless && this.time > SEASON - 12) return;
+      const overtime = Math.max(0, this.time - SEASON);
+      const hard = this.time >= HARD_AT || this.endless;
+      this.nextSpawn += this.endless
+        ? Math.max(1.55, SPAWN_H * (1 - Math.min(0.45, overtime / 240)))
+        : hard
+          ? SPAWN_H
+          : SPAWN_N;
       const roll = Math.random();
       const origin = this.nameI === 0 ? "map" : roll < 0.62 ? "map" : roll < 0.84 ? "east" : "south";
       let pos = null;
@@ -682,16 +690,40 @@
     }
 
     flash(text, t) { this.banner = text; this.bannerT = t; }
-    win() {
-      this.ended = true;
+    offerWin() {
+      if (this.ended || this.endless || this.awaitingWin) return;
+      this.awaitingWin = true;
+      this.paused = true;
       this.hsi = Math.max(1, this.hsi);
       save.record(this.hsi, this.dodged);
       audio.win();
       this.pushHud();
+      this.ui.offerWin(this);
+    }
+    continueEndless() {
+      if (!this.awaitingWin || this.ended) return;
+      this.awaitingWin = false;
+      this.endless = true;
+      this.paused = false;
+      this.flash("無盡模式 · 風季之後氣旋仍在", 2.6);
+      this.ui.resumePlay();
+    }
+    leaveWin() {
+      if (this.ended) return;
+      this.awaitingWin = false;
+      this.ended = true;
+      this.paused = false;
+      this.hsi = Math.max(1, this.hsi);
+      this.pushHud();
       this.ui.end(true, this);
+    }
+    win() {
+      this.leaveWin();
     }
     lose(kind) {
       this.ended = true;
+      this.awaitingWin = false;
+      this.paused = false;
       this.loseKind = kind;
       if (kind === "zero") this.hsi = 0;
       save.record(kind === "zero" ? 0 : this.hsi, this.dodged);
@@ -987,7 +1019,7 @@
       else ban.classList.add("hidden");
       const live = g.storms.filter((s) => !s.dead).length;
       $("stats").innerHTML =
-        `風季剩餘 ${fmtTime(Math.max(0, SEASON - g.time))}${g.time >= HARD_AT ? " · 下半季" : ""}<br>` +
+        `${g.endless ? `無盡 ${fmtTime(Math.max(0, g.time - SEASON))}` : `風季剩餘 ${fmtTime(Math.max(0, SEASON - g.time))}`}${g.time >= HARD_AT || g.endless ? " · 下半季" : ""}<br>` +
         `力場 ${g.leeCharges}/${LEE_MAX}${g.leeT > 0 ? " · 展開中" : ""}<br>` +
         `快閃 ${g.dashCharges}/${DASH_MAX}${g.dashT > 0 ? ` · ${g.dashT.toFixed(1)}s` : g.dashCd > 0 ? ` · 冷卻 ${g.dashCd.toFixed(0)}s` : ""}<br>` +
         `${g.inGaleCircle() ? "滯留風圈 · 熊市延長" : "未入風圈 · 熊市縮短"}<br>` +
@@ -1023,6 +1055,26 @@
       $("pause").classList.toggle("hidden", !on);
       if (on) $("help").classList.add("hidden");
     },
+    resumePlay() {
+      $("end").classList.add("hidden");
+      $("hud").classList.remove("hidden");
+      $("touch").classList.remove("hidden");
+    },
+    offerWin(g) {
+      $("pause").classList.add("hidden");
+      const el = $("end");
+      el.classList.remove("hidden");
+      $("endKicker").textContent = "風季結束";
+      $("endTitle").textContent = "守住了";
+      $("endBody").textContent = "恆指未歸零。可以收市離開，或以無盡模式繼續——氣旋不會停。";
+      $("endStats").innerHTML = [
+        ["現時恆指", fmtHsi(g.hsi), true],
+        ["消散／逼走", String(g.dodged), false],
+      ].map(([l, v, up]) => `<div class="stat"><div class="lbl">${l}</div><div class="val${up ? " up" : ""}">${v}</div></div>`).join("");
+      $("endless").classList.remove("hidden");
+      $("leaveWin").classList.remove("hidden");
+      $("replay").classList.add("hidden");
+    },
     end(win, g) {
       $("hud").classList.add("hidden");
       $("touch").classList.add("hidden");
@@ -1043,6 +1095,9 @@
         ["周期", g.cycle === "bull" ? "牛" : "熊", false],
         ["結果", win ? "守住" : "失守", false],
       ].map(([l, v, up]) => `<div class="stat"><div class="lbl">${l}</div><div class="val${up ? " up" : ""}">${v}</div></div>`).join("");
+      $("endless").classList.add("hidden");
+      $("leaveWin").classList.add("hidden");
+      $("replay").classList.remove("hidden");
     },
   };
 
@@ -1135,6 +1190,8 @@
     $("touch").classList.remove("hidden");
     game.start();
   };
+  $("endless").onclick = () => game.continueEndless();
+  $("leaveWin").onclick = () => game.leaveWin();
 
   const pad = $("pad"), knob = $("knob");
   let origin = null;
