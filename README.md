@@ -13,6 +13,8 @@
   If Signal No. 8 or above is still in force when the halt ends, the season is over.
 - **P / Esc** — pause
 
-Hang Seng Index opens at 20,000. Signal No. 1 and up cause panic selling (1: 20%, 3: 50%, 8: 100%, 9: 200%, 10: 400%). Purple **devil storms** can spawn in the second half as super typhoons.
+Hang Seng Index opens at 20,000. Signal No. 1 and up cause panic selling (1: 4%, 3: 10%, 8: 100%, 9: 200%, 10: 400%). Purple **devil storms** can spawn in the second half as super typhoons.
 
 Viewport: 7–31°N, 105–140°E. Season: 8 minutes.
+
+After the season ends, player can choose endless mode to continue playing the game or close the market. The endless mode will be harder as time lapses.
