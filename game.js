@@ -617,7 +617,7 @@
           else if (sig === 1) this.flash("一號戒備信號 · 市場恐慌拋售", 1.6);
         } else if (sig < prev) {
           const drop = SIG_MULT[prev] - SIG_MULT[sig];
-          if (drop > 0) this.hsi = Math.max(0, this.hsi + drop * (520 + Math.random() * 380));
+          if (drop > 0) this.hsi = Math.max(0, this.hsi + drop * T8_DRAG * 0.5);
           if (prev >= 8 && sig < 8) this.flash("八號或以上除下 · 市場回穩", 2.2);
           else if (sig === 0) this.flash("警告除下 · 恐慌減退", 1.8);
         }
