@@ -15,6 +15,6 @@
 
 Hang Seng Index opens at 20,000. Signal No. 1 and up cause panic selling. Red **devil storms** can spawn in the second half as super typhoons.
 
-Viewport: 7–31°N, 105–140°E. Season: 8 minutes.
+Viewport: 7–31°N, 105–140°E. Season: 3 minutes.
 
 After the season ends, player can choose endless mode to continue playing the game or close the market. The endless mode will be harder as time lapses.

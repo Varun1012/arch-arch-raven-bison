@@ -1,8 +1,8 @@
 (() => {
   const FIXED = 1 / 60;
   const START_HSI = 20000;
-  const SEASON = 480;
-  const HARD_AT = 240;
+  const SEASON = 180;
+  const HARD_AT = 90;
   const HK0 = { lon: 114.17, lat: 22.32 };
   const WEST = 105, EAST = 140, SOUTH = 7, NORTH = 31;
   const MASK_WEST = 100, MASK_EAST = 140, MASK_SOUTH = 7, MASK_NORTH = 36;
@@ -356,7 +356,7 @@
       this.dashEdge = false;
       if (!this.hardAnnounced && this.time >= HARD_AT) {
         this.hardAnnounced = true;
-        this.flash("下半季開始 · 超級魔鬼風暴可能生成", 2.6);
+        this.flash("後半開始 · 氣旋更密 · 停市已解鎖", 2.5);
         this.trauma = 0.35;
       }
       this.trauma = Math.max(0, this.trauma - dt * 1.4);
@@ -439,7 +439,7 @@
 
     spawnStorms() {
       if (this.time < this.nextSpawn) return;
-      if (!this.endless && this.time > SEASON - 12) return;
+      if (!this.endless && this.time > SEASON - 8) return;
       const overtime = Math.max(0, this.time - SEASON);
       const hard = this.time >= HARD_AT || this.endless;
       this.nextSpawn += this.endless
@@ -479,10 +479,9 @@
         const pDevil = 0.2 + Math.min(0.4, overtime / 280);
         if (Math.random() < pSuper) superDevil = true;
         else if (Math.random() < pDevil) devil = true;
-      } else if (this.time >= HARD_AT) {
-        if (this.superCount < 2 && Math.random() < 0.11) superDevil = true;
-        else if (this.devilCount < 7 && Math.random() < 0.24) devil = true;
-      } else if (this.devilCount < 4 && Math.random() < 0.16) {
+      } else if (this.superCount < 2 && Math.random() < 0.09) {
+        superDevil = true;
+      } else if (this.devilCount < 6 && Math.random() < 0.2) {
         devil = true;
       }
       if (superDevil) devil = true;
@@ -732,7 +731,7 @@
 
     tryHalt() {
       if (this.paused || this.ended || this.haltT > 0 || this.haltCharges <= 0) return;
-      if (this.time < HARD_AT) { this.flash("下半季才可停市", 1.6); return; }
+      if (this.time < HARD_AT) { this.flash("後半才可停市", 1.6); return; }
       this.haltCharges -= 1;
       this.haltT = 5;
       audio.board();
@@ -1105,11 +1104,11 @@
       else ban.classList.add("hidden");
       const live = g.storms.filter((s) => !s.dead).length;
       $("stats").innerHTML =
-        `${g.endless ? `無盡 ${fmtTime(Math.max(0, g.time - SEASON))}` : `風季剩餘 ${fmtTime(Math.max(0, SEASON - g.time))}`}${g.time >= HARD_AT || g.endless ? " · 下半季" : ""}${g.endless ? " · 預測路徑 90%" : ""}<br>` +
+        `${g.endless ? `無盡 ${fmtTime(Math.max(0, g.time - SEASON))}` : `風季剩餘 ${fmtTime(Math.max(0, SEASON - g.time))}`}${g.time >= HARD_AT || g.endless ? " · 後半" : ""}${g.endless ? " · 預測路徑 90%" : ""}<br>` +
         `力場 ${g.leeCharges}/${LEE_MAX}${g.leeT > 0 ? " · 展開中" : ""}<br>` +
         `快閃 ${g.endless ? "不限" : `${g.dashCharges}/${DASH_MAX}`}${g.dashT > 0 ? ` · ${g.dashT.toFixed(1)}s` : g.dashCd > 0 ? ` · 冷卻 ${g.dashCd.toFixed(0)}s` : ""}<br>` +
         `${g.inGaleCircle() ? "滯留風圈 · 熊市延長" : "未入風圈 · 熊市縮短"}<br>` +
-        `停市 ${g.haltCharges}/1${g.haltT > 0 ? " · 生效中" : g.time >= HARD_AT ? "" : " · 下半季解鎖"}<br>` +
+        `停市 ${g.haltCharges}/1${g.haltT > 0 ? " · 生效中" : g.time >= HARD_AT ? "" : " · 後半解鎖"}<br>` +
         `在場氣旋 ${live} · 消散 ${g.dodged}<br>` +
         `香港 ${g.hk.lat.toFixed(2)}°N ${g.hk.lon.toFixed(2)}°E<br>` +
         `${g._nearest > 0 ? `最近風暴 ${Math.round(g._nearest)} km` : "暫無威脅"}<br>` +
