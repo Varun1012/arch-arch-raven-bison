@@ -568,17 +568,9 @@
       this.rebuildForecast(s);
     }
 
-    headingStep(s, heading, age, dt, bias, field) {
+    headingStep(s, heading, age, dt, bias) {
       if (age < s.initDur) return heading;
-      let desired = this.envHeading({ ...s, heading, age }, bias);
-      if (field) {
-        const dlon = s.lon - this.hk.lon, dlat = s.lat - this.hk.lat;
-        const d = Math.hypot(dlon, dlat) || 0.01;
-        if (d < 10) {
-          const away = Math.atan2(dlon, dlat) * 180 / Math.PI;
-          desired = lerpHeading(desired, away, (1 - d / 10) * 0.55);
-        }
-      }
+      const desired = this.envHeading({ ...s, heading, age }, bias);
       const delta = ((desired - heading + 540) % 360) - 180;
       return heading + clamp(delta, -45 * dt, 45 * dt);
     }
@@ -588,12 +580,12 @@
       const circles = [];
       let lon = s.lon, lat = s.lat, heading = s.heading, age = s.age;
       const ghost = { ...s, lon, lat, heading, age, steer: s.forecastFakeJapan ? "japan" : s.steer };
-      const dt = 0.25;
+      const dt = 0.2;
       let t = 0, nextMark = 1;
-      while (t < 12) {
+      while (t < 3) {
         age += dt; t += dt;
         ghost.age = age; ghost.lon = lon; ghost.lat = lat;
-        heading = this.headingStep(ghost, heading, age, dt, s.forecastBias, false);
+        heading = this.headingStep(ghost, heading, age, dt, s.forecastBias);
         const rad = heading * Math.PI / 180;
         lon += Math.sin(rad) * s.speed * dt;
         lat += Math.cos(rad) * s.speed * dt;
@@ -605,7 +597,18 @@
       }
       s.forecast = pts;
       s.forecastCircles = circles;
-      s.forecastT = 8;
+      s.forecastT = 3;
+    }
+
+    repelLee(s, dt) {
+      const dlon = s.lon - this.hk.lon, dlat = s.lat - this.hk.lat;
+      const d = Math.hypot(dlon, dlat) || 0.01;
+      if (d >= 10) return;
+      const nx = dlon / d, ny = dlat / d;
+      s.heading = Math.atan2(dlon, dlat) * 180 / Math.PI;
+      const out = 10 + 0.35 + 2.4 * dt;
+      s.lon = this.hk.lon + nx * out;
+      s.lat = this.hk.lat + ny * out;
     }
 
     moveStorms(dt) {
@@ -613,10 +616,11 @@
       for (const s of this.storms) {
         if (s.dead) continue;
         s.age += dt;
-        s.heading = this.headingStep(s, s.heading, s.age, dt, 0, field);
+        if (!field) s.heading = this.headingStep(s, s.heading, s.age, dt, 0);
         const rad = s.heading * Math.PI / 180;
         s.lon += Math.sin(rad) * s.speed * dt;
         s.lat += Math.cos(rad) * s.speed * dt;
+        if (field) this.repelLee(s, dt);
         if (this.isLand(s.lon, s.lat)) s.kt -= LAND_WEAKEN * dt;
         else s.kt += (s.kt < 34 ? 1.6 : s.kt < 64 ? 1.1 : s.kt < 95 ? 0.55 : 0.15) * dt;
         s.kt = clamp(s.kt, 0, s.super ? 190 : s.devil ? 165 : 145);
@@ -756,7 +760,7 @@
       this.leeT = 7.5;
       this.leeCd = 16;
       audio.field();
-      this.flash("李氏力場展開 · 氣旋受拒", 2);
+      this.flash("李氏力場展開 · 擋開氣旋", 2);
       this.trauma = 0.25;
     }
 
