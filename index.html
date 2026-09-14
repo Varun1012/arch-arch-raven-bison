@@ -17,12 +17,12 @@
     <meta name="theme-color" content="#0b1218" />
     <meta
       name="description"
-      content="搬遷香港、開李氏力場、護住恆生指數。西太平洋颱風季策略遊戲。恆指兩萬點開市，一號起恐慌拋售。"
+      content="搬遷香港、開李氏力場、護住恆生指數。西太平洋颱風季策略遊戲。亦可改打日本地圖《暴風警報》。"
     />
     <meta property="og:title" content="八號風球" />
     <meta
       property="og:description"
-      content="搬遷香港、開李氏力場、護住恆生指數。西太平洋颱風季策略遊戲。"
+      content="搬遷香港、開李氏力場、護住恆生指數。亦可改打日本地圖《暴風警報》。"
     />
     <meta property="og:image" content="https://varun1012.github.io/arch-arch-raven-bison/og.jpg" />
     <meta property="og:url" content="https://varun1012.github.io/arch-arch-raven-bison/" />
@@ -34,7 +34,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+JP:wght@500;600&family=Noto+Serif+TC:wght@500;600&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
@@ -47,12 +47,16 @@
         <img id="titleArt" src="maps/title.jpg" alt="" />
         <div class="veil"></div>
         <div class="sheet">
-          <p class="kicker">西太平洋颱風季 · 恒生指數</p>
-          <h1>八號風球</h1>
-          <p class="sub">李氏力場與搬遷香港</p>
-          <p class="lede">
-            恆指以兩萬點開市，風季三分鐘。魔鬼風暴與少量超級魔鬼整季都可能出現。撐過可收市或無盡繼續。後半可停市五秒一次，若八號或以上未除即強制收市。指數歸零亦完。
+          <p id="titleKicker" class="kicker">西太平洋颱風季 · 恒生指數</p>
+          <h1 id="titleName">八號風球</h1>
+          <p id="titleSub" class="sub">李氏力場與搬遷香港</p>
+          <p id="titleLede" class="lede">
+            恆指以兩萬點開市，風季三分鐘。魔鬼風暴與少量超級魔鬼整季都可能出現。撐過可收市或無盡繼續。
           </p>
+          <div class="map-pick" role="group" aria-label="地圖">
+            <button id="pickHk" type="button" class="map-btn on">香港</button>
+            <button id="pickJp" type="button" class="map-btn">日本</button>
+          </div>
           <div class="row">
             <button id="start" type="button">進入風季</button>
             <button id="helpBtn" type="button" class="ghost">避風守則</button>
@@ -63,29 +67,16 @@
 
       <div id="help" class="overlay dim hidden">
         <div class="card">
-          <h2>避風守則</h2>
-          <ul>
-            <li>地圖範圍北緯 7–31 度、東經 105–140 度，香港為焦點。</li>
-            <li>熱帶低氣壓可在可視範圍內任何洋面生成，亦可自圖外東面（西太平洋）或南面（南海）移入。登陸減弱偏慢。</li>
-            <li>一號、三號對恆指拖累已大減八成：一號 4%、三號 10%；八號、九號、十號各加重至 200%、500%、1200%（以原八號為 100%）。</li>
-            <li>警告除下時，回升只及該信號一秒拖累的一半。十號最傷，一號最輕。</li>
-            <li>恆指以 20,000 點為基準。牛市／熊市各有主軸。滯留颱風圈會拉長熊市，避開則逐步縮短。</li>
-            <li>風季三分鐘。魔鬼風暴與少量超級魔鬼風暴整季都有機會生成。後半生成加快，可停市一次。</li>
-            <li>撐過風季且恆指未歸零即可收市，或改入無盡模式。無盡延續後半難度並隨時間再升，顯示未來三秒預測路徑與誤差圈（每三秒更新，準確度約九成五），快閃不限次數（冷卻與時長不變）。</li>
-            <li>部份氣旋起初偏北移動；其後轉向每秒不超過左右各 45 度。</li>
-            <li>紫色為魔鬼風暴，玫紅為超級魔鬼。風圈約為普通魔鬼的一倍半至兩倍以上。</li>
-            <li>後半可停市一次、為時五秒。停市只暫停交易，氣旋仍會移動。結束時若仍是八號或以上，即強制收市完結。</li>
-            <li>WASD 或搖桿移動香港位置，令風球對你失效。Shift 或 E 快閃移動三秒，每季五次，每次冷卻十秒。無盡模式快閃次數不限。F 鍵停市。</li>
-            <li>空白鍵發動李氏力場，把進入範圍的氣旋擋住並推開。每季三次，有冷卻。港股慣例紅升綠跌。</li>
-          </ul>
+          <h2 id="helpTitle">避風守則</h2>
+          <ul id="helpList"></ul>
           <button id="helpBack" type="button">返回</button>
         </div>
       </div>
 
       <div id="pause" class="overlay dim hidden">
         <div class="card pause-card">
-          <h2>暫停</h2>
-          <p class="lede">氣旋不會等你。</p>
+          <h2 id="pauseTitle">暫停</h2>
+          <p id="pauseLede" class="lede">氣旋不會等你。</p>
           <button id="resume" type="button">繼續</button>
           <button id="pauseHelp" type="button" class="ghost">避風守則</button>
           <button id="quit" type="button" class="ghost">離開</button>
@@ -102,8 +93,8 @@
           </div>
           <div id="ticker">
             <div class="ticker-head">
-              <span>恒生指數</span>
-              <span class="muted">紅升綠跌 · 基準 20,000</span>
+              <span id="tickerIndex">恒生指數</span>
+              <span id="tickerHint" class="muted">紅升綠跌 · 基準 20,000</span>
             </div>
             <div id="hsi">20,000.00</div>
             <div id="delta">+0</div>

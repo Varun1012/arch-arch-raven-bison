@@ -1,4 +1,6 @@
 (() => {
+const MAPS = {"hk":{"id":"hk","mapUrl":"maps/east-asia.json","west":105,"east":140,"south":7,"north":31,"maskWest":100,"maskEast":140,"maskSouth":7,"maskNorth":36,"home":{"lon":114.17,"lat":22.32},"start":20000,"sigMult":{"0":0,"1":0.04,"3":0.1,"8":2,"9":5,"10":12},"skipNine":false,"names":["馬鞍","小犬","蘇拉","海葵","泰利","暹芭","軒嵐諾","梅花","楊柳","蝴蝶","韋帕","榕樹"],"places":[{"name":"廣州","lon":113.26,"lat":23.13,"size":11},{"name":"台北","lon":121.57,"lat":25.03,"size":11},{"name":"馬尼拉","lon":120.98,"lat":14.6,"size":11},{"name":"那霸","lon":127.68,"lat":26.21,"size":10},{"name":"河內","lon":105.85,"lat":21.03,"size":10},{"name":"上海","lon":121.47,"lat":31.23,"size":11},{"name":"海口","lon":110.35,"lat":20.02,"size":10},{"name":"大阪","lon":135.5,"lat":34.69,"size":10},{"name":"廈門","lon":118.09,"lat":24.48,"size":10},{"name":"曼谷","lon":100.5,"lat":13.76,"size":10}],"copy":{"kicker":"西太平洋颱風季 · 恒生指數","title":"八號風球","sub":"李氏力場與搬遷香港","lede":"恆指以兩萬點開市，風季三分鐘。魔鬼風暴與少量超級魔鬼整季都可能出現。撐過可收市或無盡繼續。","start":"進入風季","loading":"正在掛圖…","help":"避風守則","back":"返回","pause":"暫停","pauseLede":"氣旋不會等你。","resume":"繼續","quit":"離開","index":"恒生指數","indexHint":"紅升綠跌 · 基準 20,000","bull":"牛市","bear":"熊市","bullFlash":"牛市展開","bearFlash":"熊市來襲","bearLong":"漫長熊市來襲 · 風圈滯留所致","home":"香港","homeMark":"原址","field":"李氏力場","fieldShort":"力場","fieldFlash":"李氏力場展開 · 擋開氣旋","dash":"快閃移動","dashShort":"快閃","dashFlash":"快閃移動 · 香港急航三秒","dashEndless":"快閃移動 · 無盡不限次","halt":"停市 5 秒","haltShort":"停市","haltFlash":"停市五秒 · 氣旋不停 · 八號未除則強制收市","haltEarly":"後半才可停市","haltResume":"恢復交易","haltFail":"停市結束 · 八號或以上仍生效","sig0":"除下","sig1":"1號","sig3":"3號","sig8":"8號","sig9":"9號","sig10":"10號","raise1":"一號戒備信號 · 市場恐慌拋售","raise3":"三號強風信號 · 恐慌拋售加劇","raise8":"八號烈風或暴風信號生效 · 恆指受拖累","raise9":"九號烈風增強信號 · 大市受壓","raise10":"十號颶風信號 · 恆指急挫","drop8":"八號或以上除下 · 市場回穩","drop0":"警告除下 · 恐慌減退","td":"熱帶低氣壓","devil":"魔鬼風暴","super":"超級魔鬼風暴","fromEast":"自太平洋東面逼近","fromSouth":"自南海以南北上","fromMap":"於洋面生成","pred":"預測","endlessFlash":"無盡模式 · 預測路徑準確度九成五 · 快閃不限次","winKicker":"風季結束","winTitle":"守住了","winBody":"恆指未歸零。可以收市離開，或以無盡模式繼續——氣旋不會停。","winLeave":"離開收市","endless":"無盡模式","overKicker":"市場停擺","haltKicker":"強制收市","overTitle":"恆指歸零","haltTitle":"停市失敗","winClose":"收市","overBody":"八號風球疊加熊市，指數再無支撐。","haltBody":"停市五秒結束，八號或以上警告仍未除下。","winBodyEnd":"你把香港熬過這個風季。以下是收市指數。","replay":"再來一季","seasonLeft":"風季剩餘","endlessHud":"無盡","inCircle":"滯留風圈 · 熊市延長","outCircle":"未入風圈 · 熊市縮短","controls":"WASD 搬遷 · Shift 快閃 · 空白力場 · F 停市","locale":"zh-HK","startBannerBull":"牛市展開 · 恆指以兩萬點開市","startBannerBear":"熊市開局 · 仍以兩萬點起步","hardFlash":"後半開始 · 氣旋更密 · 停市已解鎖","labelDevil":"魔鬼","labelSuper":"超魔","leeOn":"展開中","dashCd":"冷卻","haltOn":"生效中","haltLock":"後半解鎖","liveLabel":"在場","nearest":"最近風暴","noThreat":"暫無威脅","predHud":"預測路徑 95%","recClose":"收市紀錄","recDodge":"逼走氣旋","loadFail":"未能載入","muteOn":"靜音","muteOff":"開啟聲音","hardTag":"後半","dissipated":"消散"},"help":["地圖範圍北緯 7–31 度、東經 105–140 度，香港為焦點。","熱帶低氣壓可在可視範圍內任何洋面生成，亦可自圖外東面（西太平洋）或南面（南海）移入。登陸減弱偏慢。","一號、三號對恆指拖累已大減八成：一號 4%、三號 10%；八號、九號、十號各加重至 200%、500%、1200%（以原八號為 100%）。","恆指以 20,000 點為基準。牛市／熊市各有主軸。滯留颱風圈會拉長熊市，避開則逐步縮短。警告除下時，回升只及該信號一秒拖累的一半。","風季三分鐘。魔鬼風暴與少量超級魔鬼風暴整季都有機會生成。後半生成加快，可停市一次。","撐過風季且恆指未歸零即可收市，或改入無盡模式。無盡延續後半難度並隨時間再升，顯示未來三秒預測路徑與誤差圈（每三秒更新，準確度約九成五），快閃不限次數（冷卻與時長不變）。","部份氣旋起初偏北移動；其後轉向每秒不超過左右各 45 度。","紫色為魔鬼風暴，玫紅為超級魔鬼。風圈約為普通魔鬼的一倍半至兩倍以上。","後半可停市一次、為時五秒。停市只暫停交易，氣旋仍會移動。結束時若仍是八號或以上，即強制收市。","WASD 或搖桿搬遷香港。Shift 或 E 快閃移動三秒，每季五次，每次冷卻十秒。無盡模式快閃次數不限。","空白鍵發動李氏力場，把進入範圍的氣旋擋住並推開。每季三次，有冷卻。"]},"jp":{"id":"jp","mapUrl":"maps/japan.json","west":124,"east":150,"south":24,"north":46,"maskWest":124,"maskEast":150,"maskSouth":24,"maskNorth":46,"home":{"lon":137.8,"lat":36.2},"start":60000,"sigMult":{"0":0,"1":0.16,"3":0.4,"8":4,"9":4,"10":16},"skipNine":true,"names":["メアリー","ハイシェン","コイヌ","サンサン","ウーコン","マーゴン","トクラジ","マニー","ウサギ","ヤギ","インブド","クーロワン"],"places":[{"name":"東京","lon":139.69,"lat":35.69,"size":11},{"name":"大阪","lon":135.5,"lat":34.69,"size":11},{"name":"名古屋","lon":136.91,"lat":35.18,"size":10},{"name":"札幌","lon":141.35,"lat":43.06,"size":11},{"name":"福岡","lon":130.4,"lat":33.59,"size":10},{"name":"那覇","lon":127.68,"lat":26.21,"size":10},{"name":"仙台","lon":140.87,"lat":38.27,"size":10},{"name":"広島","lon":132.46,"lat":34.39,"size":10},{"name":"鹿児島","lon":130.56,"lat":31.6,"size":10},{"name":"ソウル","lon":126.98,"lat":37.57,"size":10}],"copy":{"kicker":"北西太平洋台風季 · 日経平均","title":"暴風警報","sub":"コロッケと列島の避難","lede":"日経は6万点で始まる。台風季は3分。悪魔台風と少数の超悪魔が季を通して出る。守り切れば場を閉じるか、エンドレスへ。","start":"台風季に入る","loading":"図を掛けています…","help":"防災心得","back":"戻る","pause":"一時停止","pauseLede":"台風は待たない。","resume":"続ける","quit":"やめる","index":"日経平均株価","indexHint":"赤上げ緑下げ · 基準 60,000","bull":"強気","bear":"弱気","bullFlash":"強気相場","bearFlash":"弱気相場","bearLong":"長い弱気 · 暴風圏に滞留","home":"列島","homeMark":"原地","field":"コロッケ","fieldShort":"コロッケ","fieldFlash":"コロッケ展開 · 台風を遮る","dash":"閃光移動","dashShort":"閃光","dashFlash":"閃光移動 · 列島が急航","dashEndless":"閃光移動 · 回数無制限","halt":"取引停止 5秒","haltShort":"停止","haltFlash":"取引停止五秒 · 台風は止まない · 暴風警報が残れば強制終了","haltEarly":"後半まで取引停止は使えない","haltResume":"取引再開","haltFail":"停止終了 · 暴風警報が残っている","sig0":"解除","sig1":"早期注意","sig3":"強風注意","sig8":"暴風警報","sig9":"暴風警報","sig10":"特別警報","raise1":"早期注意情報 · 市場が警戒","raise3":"強風注意報 · 売りが広がる","raise8":"暴風警報発令 · 日経が大きく押される","raise9":"暴風警報発令 · 日経が大きく押される","raise10":"暴風特別警報 · 瞬間的な恐慌売り","drop8":"暴風警報解除 · 市場が落ち着く","drop0":"警報解除 · 警戒が退く","td":"熱帯低気圧","devil":"悪魔台風","super":"超悪魔台風","fromEast":"太平洋の東から接近","fromSouth":"フィリピン海から北上","fromMap":"洋上で発生","pred":"予測","endlessFlash":"エンドレス · 予測経路の精度は九割五分 · 閃光無制限","winKicker":"台風季終了","winTitle":"守り切った","winBody":"日経はゼロにならなかった。場を閉じるか、エンドレスで続ける。","winLeave":"場を閉じる","endless":"エンドレス","overKicker":"市場停止","haltKicker":"強制終了","overTitle":"日経ゼロ","haltTitle":"停止失敗","winClose":"引け","overBody":"暴風警報と弱気が重なり、指数が支えを失った。","haltBody":"取引停止の五秒が終わり、暴風警報が残っていた。","winBodyEnd":"列島はこの台風季を越えた。引け値は以下。","replay":"もう一季","seasonLeft":"台風季 残り","endlessHud":"エンドレス","inCircle":"暴風圏に滞留 · 弱気が延びる","outCircle":"圏外 · 弱気が縮む","controls":"WASD 移動 · Shift 閃光 · 空白 コロッケ · F 取引停止","locale":"ja","startBannerBull":"強気スタート · 日経は6万点","startBannerBear":"弱気スタート · それでも6万点から","hardFlash":"後半開始 · 発生が速まる · 取引停止が解禁","labelDevil":"悪魔","labelSuper":"超悪魔","leeOn":"展開中","dashCd":"冷却","haltOn":"発動中","haltLock":"後半で解禁","liveLabel":"場内","nearest":"最寄り台風","noThreat":"脅威なし","predHud":"予測経路 95%","recClose":"引け記録","recDodge":"追い出した台風","loadFail":"読み込みに失敗しました","muteOn":"消音","muteOff":"音声オン","hardTag":"後半","dissipated":"消滅"},"help":["地図は北緯 24–46 度、東経 124–150 度。列島を中央に置く。","熱帯低気圧は可視範囲内の海で発生し、画面の東（太平洋）または南（フィリピン海）からも入る。上陸後の衰弱は遅い。","警報は四段階。早期注意情報は1号相当で日経を16%、強風注意報は3号相当で40%、暴風警報は8号相当で400%、暴風特別警報は10号相当で1600%押し下げ、さらに瞬間的な恐慌売りと強い揺れが起きる。","日経平均は 60,000 点から。強気／弱気の周期がある。暴風圏に滞留すると弱気が延び、圏外なら縮む。警報解除時の戻りは、1秒分の押し下げの半分だけ。","台風季は3分。悪魔台風と少数の超悪魔は季を通して出る。後半は発生が速く、取引停止を一度使える。","季を守り切れば場を閉じるか、エンドレスへ。エンドレスでは予測経路（未来3秒、3秒ごとに更新、精度約95%）が出て、閃光は無制限。","一部の台風は初め北寄りに進み、その後の転向は毎秒左右45度以内。","紫は悪魔台風、紅は超悪魔。風圏は通常の悪魔より大きい。","後半の取引停止は5秒。取引だけ止まり、台風は動き続ける。終了時に暴風警報以上が残れば強制終了。","WASD またはスティックで列島を移す。Shift または E で閃光移動3秒、季ごとに5回、冷却10秒。エンドレスでは回数無制限。","空白キーでコロッケを展開し、範囲内の台風を遮って押し出す。季ごとに3回、冷却あり。"]}};
+
   const FIXED = 1 / 60;
   const START_HSI = 20000;
   const SEASON = 180;
@@ -66,7 +68,14 @@
     const m = Math.floor(s / 60), sec = Math.floor(s % 60);
     return `${m}:${sec.toString().padStart(2, "0")}`;
   };
-  const sigLabel = (s) => (s === 0 ? "除下" : `${s}號`);
+  const sigLabel = (cfg, s) => {
+    if (s === 0) return cfg.copy.sig0;
+    if (s === 1) return cfg.copy.sig1;
+    if (s === 3) return cfg.copy.sig3;
+    if (s === 8) return cfg.copy.sig8;
+    if (s === 9) return cfg.copy.sig9;
+    return cfg.copy.sig10;
+  };
 
   const save = {
     load() {
@@ -223,7 +232,8 @@
   };
 
   class Game {
-    constructor(canvas, ui) {
+    constructor(canvas, ui, locale = "hk") {
+      this.cfg = MAPS[locale] || MAPS.hk;
       this.canvas = canvas;
       this.ctx = canvas.getContext("2d");
       this.ui = ui;
@@ -242,8 +252,8 @@
     }
 
     async load() {
-      const res = await fetch("maps/east-asia.json");
-      if (!res.ok) throw new Error("地圖未能載入");
+      const res = await fetch(this.cfg.mapUrl);
+      if (!res.ok) throw new Error(this.cfg.copy.loadFail);
       const j = await res.json();
       this.map = {
         land: j.land,
@@ -293,13 +303,13 @@
     }
 
     reset() {
-      this.hk = { lon: HK0.lon, lat: HK0.lat, vx: 0, vy: 0 };
+      this.hk = { lon: this.cfg.home.lon, lat: this.cfg.home.lat, vx: 0, vy: 0 };
       this.storms = [];
-      this.hsi = START_HSI;
+      this.hsi = this.cfg.start;
       this.hsiDelta = 0;
-      this.hsiMark = START_HSI;
+      this.hsiMark = this.cfg.start;
       this.hsiMarkT = 0;
-      this.spark = Array.from({ length: 48 }, () => START_HSI);
+      this.spark = Array.from({ length: 48 }, () => this.cfg.start);
       this.sparkT = 0;
       this.cycle = Math.random() < 0.55 ? "bull" : "bear";
       this.bearSpan = 36 + Math.random() * 14;
@@ -312,7 +322,7 @@
       this.endless = false;
       this.awaitingWin = false;
       this.loseKind = null;
-      this.banner = this.cycle === "bull" ? "牛市展開 · 恆指以兩萬點開市" : "熊市開局 · 仍以兩萬點起步";
+      this.banner = this.cycle === "bull" ? this.cfg.copy.startBannerBull : this.cfg.copy.startBannerBear;
       this.bannerT = 2.6;
       this.trauma = 0;
       this.leeCharges = LEE_MAX;
@@ -350,8 +360,8 @@
     isLand(lon, lat) {
       const m = this.map;
       if (!m) return false;
-      const i = Math.floor(((lon - MASK_WEST) / (MASK_EAST - MASK_WEST)) * m.cols);
-      const j = Math.floor(((MASK_NORTH - lat) / (MASK_NORTH - MASK_SOUTH)) * m.rows);
+      const i = Math.floor(((lon - this.cfg.maskWest) / (this.cfg.maskEast - this.cfg.maskWest)) * m.cols);
+      const j = Math.floor(((this.cfg.maskNorth - lat) / (this.cfg.maskNorth - this.cfg.maskSouth)) * m.rows);
       if (i < 0 || j < 0 || i >= m.cols || j >= m.rows) return false;
       return m.bits[j * m.cols + i] === 1;
     }
@@ -381,7 +391,7 @@
       this.dashEdge = false;
       if (!this.hardAnnounced && this.time >= HARD_AT) {
         this.hardAnnounced = true;
-        this.flash("後半開始 · 氣旋更密 · 停市已解鎖", 2.5);
+        this.flash(this.cfg.copy.hardFlash, 2.5);
         this.trauma = 0.35;
       }
       this.trauma = Math.max(0, this.trauma - dt * 1.4);
@@ -424,8 +434,8 @@
       const speed = dash ? MOVE * DASH_MULT : MOVE;
       this.hk.vx = useX * speed;
       this.hk.vy = -useY * speed;
-      this.hk.lon = clamp(this.hk.lon + this.hk.vx * dt, WEST + 0.6, EAST - 0.6);
-      this.hk.lat = clamp(this.hk.lat + this.hk.vy * dt, SOUTH + 0.6, NORTH - 0.6);
+      this.hk.lon = clamp(this.hk.lon + this.hk.vx * dt, this.cfg.west + 0.6, this.cfg.east - 0.6);
+      this.hk.lat = clamp(this.hk.lat + this.hk.vy * dt, this.cfg.south + 0.6, this.cfg.north - 0.6);
       if (dash) {
         this.dashTrail.push({ lon: this.hk.lon, lat: this.hk.lat });
         if (this.dashTrail.length > 22) this.dashTrail.shift();
@@ -439,9 +449,9 @@
         const i = Math.floor(Math.random() * m.cols);
         const j = Math.floor(Math.random() * m.rows);
         if (m.bits[j * m.cols + i] === 1) continue;
-        const lon = MASK_WEST + ((i + 0.5) / m.cols) * (MASK_EAST - MASK_WEST);
-        const lat = MASK_NORTH - ((j + 0.5) / m.rows) * (MASK_NORTH - MASK_SOUTH);
-        if (lon < WEST + 0.4 || lon > EAST - 0.4 || lat < SOUTH + 0.4 || lat > NORTH - 0.4) continue;
+        const lon = this.cfg.maskWest + ((i + 0.5) / m.cols) * (this.cfg.maskEast - this.cfg.maskWest);
+        const lat = this.cfg.maskNorth - ((j + 0.5) / m.rows) * (this.cfg.maskNorth - this.cfg.maskSouth);
+        if (lon < this.cfg.west + 0.4 || lon > this.cfg.east - 0.4 || lat < this.cfg.south + 0.4 || lat > this.cfg.north - 0.4) continue;
         return { lon, lat };
       }
       return null;
@@ -450,14 +460,14 @@
     spawnOffMap(side) {
       if (side === "east") {
         return {
-          lon: EAST + 2.4 + Math.random() * 11,
-          lat: 9.5 + Math.random() * 16,
+          lon: this.cfg.east + 2.4 + Math.random() * 11,
+          lat: this.cfg.south + 1.6 + Math.random() * Math.max(4, this.cfg.north - this.cfg.south - 4),
           heading: 258 + Math.random() * 30,
         };
       }
       return {
-        lon: 108 + Math.random() * 20,
-        lat: SOUTH - 1.3 - Math.random() * 5.4,
+        lon: this.cfg.west + 4 + Math.random() * Math.max(6, this.cfg.east - this.cfg.west - 8),
+        lat: this.cfg.south - 1.3 - Math.random() * 5.4,
         heading: (348 + Math.random() * 32) % 360,
       };
     }
@@ -513,7 +523,7 @@
       }
       if (superDevil) devil = true;
       const japan = origin !== "south" && Math.random() < 0.34;
-      const name = NAMES[this.nameI++ % NAMES.length];
+      const name = this.cfg.names[this.nameI++ % this.cfg.names.length];
       if (devil) this.devilCount += 1;
       if (superDevil) this.superCount += 1;
       const galeMul = superDevil ? 2.2 + Math.random() * 0.4 : devil ? 1.5 + Math.random() * 0.5 : 1;
@@ -539,8 +549,8 @@
         forecast: [], forecastCircles: [], forecastAcc: true, forecastBias: 0, forecastFakeJapan: false, forecastT: 0,
       });
       if (this.endless) this.initForecast(this.storms[this.storms.length - 1]);
-      const where = origin === "east" ? "自太平洋東面逼近" : origin === "south" ? "自南海以南北上" : "於洋面生成";
-      const kind = superDevil ? "超級魔鬼風暴" : devil ? "魔鬼風暴" : "熱帶低氣壓";
+      const where = origin === "east" ? this.cfg.copy.fromEast : origin === "south" ? this.cfg.copy.fromSouth : this.cfg.copy.fromMap;
+      const kind = superDevil ? this.cfg.copy.super : devil ? this.cfg.copy.devil : this.cfg.copy.td;
       this.flash(`${kind} ${name} ${where}`, superDevil ? 2.8 : devil ? 2.4 : 1.8);
       if (superDevil) this.trauma = 0.72;
       else if (devil) this.trauma = 0.55;
@@ -630,7 +640,7 @@
           s.forecastT -= dt;
           if (s.forecastT <= 0 || !s.forecast || s.forecast.length < 2) this.rebuildForecast(s);
         }
-        const off = s.lon < WEST - 6 || s.lon > EAST + 16 || s.lat < SOUTH - 9 || s.lat > NORTH + 5;
+        const off = s.lon < this.cfg.west - 6 || s.lon > this.cfg.east + 16 || s.lat < this.cfg.south - 9 || s.lat > this.cfg.north + 5;
         if (s.kt < 16 || off) {
           s.dead = true;
           this.dodged += 1;
@@ -675,7 +685,7 @@
         const rad = s.heading * Math.PI / 180;
         const approaching = (this.hk.lon - s.lon) * Math.sin(rad) + (this.hk.lat - s.lat) * Math.cos(rad) > 0;
         if (s.kt >= 64 && km < 220) sig = raiseSignal(sig, 10);
-        else if (s.kt >= 48 && km < 320) sig = raiseSignal(sig, 9);
+        else if (s.kt >= 48 && km < 320) sig = raiseSignal(sig, this.cfg.skipNine ? 10 : 9);
         else if (s.kt >= 34 && km < 480) sig = raiseSignal(sig, 8);
         else if (s.kt >= 22 && km < 800) sig = raiseSignal(sig, 3);
         else if (km < 1100 && approaching) sig = raiseSignal(sig, 1);
@@ -687,16 +697,21 @@
         this.signal = sig;
         audio.setStorm(sig);
         if (sig > prev) {
-          if (sig === 10) { this.flash("十號颶風信號 · 恆指急挫", 2.4); audio.thunder(); audio.signal(); this.trauma = 0.7; }
-          else if (sig === 9) { this.flash("九號烈風增強信號 · 大市受壓", 2.2); audio.signal(); }
-          else if (sig === 8) { this.flash("八號烈風或暴風信號生效 · 恆指受拖累", 2.4); audio.signal(); audio.thunder(); this.trauma = 0.4; }
-          else if (sig === 3) { this.flash("三號強風信號 · 恐慌拋售加劇", 1.8); audio.signal(); }
-          else if (sig === 1) this.flash("一號戒備信號 · 市場恐慌拋售", 1.6);
+          const c = this.cfg.copy;
+          if (sig === 10) {
+            this.flash(c.raise10, 2.4); audio.thunder(); audio.signal();
+            this.trauma = this.cfg.id === "jp" ? 0.95 : 0.7;
+            if (this.cfg.id === "jp") this.hsi = Math.max(0, this.hsi - (2600 + Math.random() * 1800));
+          }
+          else if (sig === 9) { this.flash(c.raise9, 2.2); audio.signal(); }
+          else if (sig === 8) { this.flash(c.raise8, 2.4); audio.signal(); audio.thunder(); this.trauma = 0.4; }
+          else if (sig === 3) { this.flash(c.raise3, 1.8); audio.signal(); }
+          else if (sig === 1) this.flash(c.raise1, 1.6);
         } else if (sig < prev) {
-          const drop = SIG_MULT[prev] - SIG_MULT[sig];
+          const drop = this.cfg.sigMult[prev] - this.cfg.sigMult[sig];
           if (drop > 0) this.hsi = Math.max(0, this.hsi + drop * T8_DRAG * 0.5);
-          if (prev >= 8 && sig < 8) this.flash("八號或以上除下 · 市場回穩", 2.2);
-          else if (sig === 0) this.flash("警告除下 · 恐慌減退", 1.8);
+          if (prev >= 8 && sig < 8) this.flash(this.cfg.copy.drop8, 2.2);
+          else if (sig === 0) this.flash(this.cfg.copy.drop0, 1.8);
         }
       } else this.signal = sig;
     }
@@ -724,10 +739,10 @@
         this.cycleT = this.cycle === "bear" ? this.bearSpan : 30 + Math.random() * 16;
         this.flash(
           this.cycle === "bull"
-            ? "牛市展開"
+            ? this.cfg.copy.bullFlash
             : this.bearSpan > 55
-              ? "漫長熊市來襲 · 風圈滯留所致"
-              : "熊市來襲",
+              ? this.cfg.copy.bearLong
+              : this.cfg.copy.bearFlash,
           2
         );
         audio.ticker(this.cycle === "bull");
@@ -743,7 +758,7 @@
         const dir = Math.random() < 0.38 ? -withTrend : withTrend;
         this.hsi = Math.max(0, this.hsi + dir * (120 + Math.random() * 280));
       }
-      const extra = -T8_DRAG * SIG_MULT[this.signal] * dt;
+      const extra = -T8_DRAG * this.cfg.sigMult[this.signal] * dt;
       this.hsi = Math.max(0, this.hsi + (axis + wave + this.noise) * dt + extra);
       this.hsiMarkT += dt;
       if (this.hsiMarkT >= 0.45) {
@@ -760,7 +775,7 @@
       this.leeT = 7.5;
       this.leeCd = 16;
       audio.field();
-      this.flash("李氏力場展開 · 擋開氣旋", 2);
+      this.flash(this.cfg.copy.fieldFlash, 2);
       this.trauma = 0.25;
     }
 
@@ -772,26 +787,26 @@
       this.dashT = DASH_DUR;
       this.dashCd = DASH_CD;
       audio.dash();
-      this.flash(this.endless ? "快閃移動 · 無盡不限次" : "快閃移動 · 香港急航三秒", 1.8);
+      this.flash(this.endless ? this.cfg.copy.dashEndless : this.cfg.copy.dashFlash, 1.8);
     }
 
     tryHalt() {
       if (this.paused || this.ended || this.haltT > 0 || this.haltCharges <= 0) return;
-      if (this.time < HARD_AT) { this.flash("後半才可停市", 1.6); return; }
+      if (this.time < HARD_AT) { this.flash(this.cfg.copy.haltEarly, 1.6); return; }
       this.haltCharges -= 1;
       this.haltT = 5;
       audio.board();
-      this.flash("停市五秒 · 氣旋不停 · 八號未除則強制收市", 2.4);
+      this.flash(this.cfg.copy.haltFlash, 2.4);
     }
 
     finishHalt() {
       if (this.ended) return;
       if (this.signal >= 8) {
-        this.flash("停市結束 · 八號或以上仍生效", 2.4);
+        this.flash(this.cfg.copy.haltFail, 2.4);
         this.lose("halt");
         return;
       }
-      this.flash("恢復交易", 1.8);
+      this.flash(this.cfg.copy.haltResume, 1.8);
       audio.ticker(true);
     }
 
@@ -811,7 +826,7 @@
       this.awaitingWin = false;
       this.endless = true;
       this.paused = false;
-      this.flash("無盡模式 · 預測路徑準確度九成五 · 快閃不限次", 2.8);
+      this.flash(this.cfg.copy.endlessFlash, 2.8);
       for (const s of this.storms) if (!s.dead) this.initForecast(s);
       this.ui.resumePlay();
     }
@@ -846,15 +861,15 @@
       const scale = w / (this.canvas.clientWidth || w);
       const padT = 86 * scale, padB = 92 * scale, padX = 18 * scale;
       const availW = w - padX * 2, availH = h - padT - padB;
-      const aspect = (EAST - WEST) / (NORTH - SOUTH);
+      const aspect = (this.cfg.east - this.cfg.west) / (this.cfg.north - this.cfg.south);
       let mapW = availW, mapH = mapW / aspect;
       if (mapH > availH) { mapH = availH; mapW = mapH * aspect; }
       return { x: (w - mapW) / 2, y: padT + (availH - mapH) / 2, w: mapW, h: mapH };
     }
     xy(lon, lat, L) {
       return {
-        x: L.x + ((lon - WEST) / (EAST - WEST)) * L.w,
-        y: L.y + ((NORTH - lat) / (NORTH - SOUTH)) * L.h,
+        x: L.x + ((lon - this.cfg.west) / (this.cfg.east - this.cfg.west)) * L.w,
+        y: L.y + ((this.cfg.north - lat) / (this.cfg.north - this.cfg.south)) * L.h,
       };
     }
 
@@ -885,7 +900,7 @@
       ctx.fillStyle = "rgba(154,164,178,0.45)";
       ctx.font = "10px 'IBM Plex Mono', monospace";
       ctx.textAlign = "right";
-      ctx.fillText("7–31°N  ·  105–140°E", w - 16, h - 14);
+      ctx.fillText(`${this.cfg.south}–${this.cfg.north}°N  ·  ${this.cfg.west}–${this.cfg.east}°E`, w - 16, h - 14);
     }
 
     drawGrid(ctx, L) {
@@ -894,13 +909,13 @@
       ctx.fillStyle = "rgba(154,164,178,0.45)";
       ctx.font = "10px 'IBM Plex Mono', monospace";
       ctx.textAlign = "left";
-      for (let lon = Math.ceil(WEST / 5) * 5; lon <= EAST; lon += 5) {
-        const p = this.xy(lon, SOUTH, L);
+      for (let lon = Math.ceil(this.cfg.west / 5) * 5; lon <= this.cfg.east; lon += 5) {
+        const p = this.xy(lon, this.cfg.south, L);
         ctx.beginPath(); ctx.moveTo(p.x, L.y); ctx.lineTo(p.x, L.y + L.h); ctx.stroke();
         ctx.fillText(`${lon}°E`, p.x + 3, L.y + L.h - 6);
       }
-      for (let lat = Math.ceil(SOUTH / 5) * 5; lat <= NORTH; lat += 5) {
-        const p = this.xy(WEST, lat, L);
+      for (let lat = Math.ceil(this.cfg.south / 5) * 5; lat <= this.cfg.north; lat += 5) {
+        const p = this.xy(this.cfg.west, lat, L);
         ctx.beginPath(); ctx.moveTo(L.x, p.y); ctx.lineTo(L.x + L.w, p.y); ctx.stroke();
         ctx.fillText(`${lat}°N`, L.x + 4, p.y - 3);
       }
@@ -956,7 +971,7 @@
         ctx.setLineDash([]);
         (s.forecastCircles || []).forEach((c) => {
           const p = this.xy(c.lon, c.lat, L);
-          const r = (c.rKm / 111) * (L.w / (EAST - WEST));
+          const r = (c.rKm / 111) * (L.w / (this.cfg.east - this.cfg.west));
           ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
           ctx.strokeStyle = "rgba(250,204,21,0.45)";
           ctx.lineWidth = 1.4;
@@ -970,19 +985,19 @@
         ctx.beginPath(); ctx.arc(last.x, last.y, 3.2, 0, Math.PI * 2);
         ctx.fillStyle = "rgba(250,204,21,0.9)"; ctx.fill();
         ctx.fillStyle = "rgba(250,204,21,0.7)";
-        ctx.font = "600 10px 'Noto Sans TC', sans-serif";
+        ctx.font = "600 10px 'Noto Sans TC', 'Noto Sans JP', sans-serif";
         ctx.textAlign = "center";
-        ctx.fillText("預測", last.x, last.y - 8);
+        ctx.fillText(this.cfg.copy.pred, last.x, last.y - 8);
       }
     }
 
     drawPlaces(ctx, L) {
       ctx.fillStyle = "rgba(231,226,216,0.55)";
       ctx.textAlign = "left";
-      for (const c of PLACES) {
+      for (const c of this.cfg.places) {
         const p = this.xy(c.lon, c.lat, L);
         ctx.beginPath(); ctx.arc(p.x, p.y, 2, 0, Math.PI * 2); ctx.fill();
-        ctx.font = `${c.size}px 'Noto Sans TC', sans-serif`;
+        ctx.font = `${c.size}px 'Noto Sans TC', 'Noto Sans JP', sans-serif`;
         ctx.fillText(c.name, p.x + 5, p.y + 4);
       }
     }
@@ -993,7 +1008,7 @@
         const p = this.xy(s.lon, s.lat, L);
         const r = 14 + s.kt * 0.16;
         const galeKm = galeRadiusKm(s);
-        const gale = (galeKm / 111) * (L.w / (EAST - WEST));
+        const gale = (galeKm / 111) * (L.w / (this.cfg.east - this.cfg.west));
         ctx.beginPath(); ctx.arc(p.x, p.y, gale, 0, Math.PI * 2);
         ctx.fillStyle = s.super ? "rgba(190,24,93,0.22)" : s.devil ? "rgba(124,58,237,0.18)" : "rgba(196,69,60,0.12)";
         ctx.fill();
@@ -1015,9 +1030,9 @@
         ctx.beginPath(); ctx.arc(p.x, p.y, 3.5, 0, Math.PI * 2);
         ctx.fillStyle = s.super ? "#fecdd3" : s.devil ? "#ddd6fe" : "#f0c9c6"; ctx.fill();
         ctx.fillStyle = s.super ? "#fb7185" : s.devil ? "#c4b5fd" : "#e7e2d8";
-        ctx.font = "600 11px 'Noto Sans TC', sans-serif";
+        ctx.font = "600 11px 'Noto Sans TC', 'Noto Sans JP', sans-serif";
         ctx.textAlign = "center";
-        ctx.fillText(s.super ? `超魔 ${s.name}` : s.devil ? `魔鬼 ${s.name}` : s.name, p.x, p.y - r - 6);
+        ctx.fillText(s.super ? `${this.cfg.copy.labelSuper} ${s.name}` : s.devil ? `${this.cfg.copy.labelDevil} ${s.name}` : s.name, p.x, p.y - r - 6);
         ctx.font = "10px 'IBM Plex Mono', monospace";
         ctx.fillStyle = s.super ? "rgba(251,113,133,0.95)" : s.devil ? "rgba(196,181,253,0.9)" : "rgba(231,226,216,0.7)";
         ctx.fillText(`${s.kt.toFixed(0)} kt`, p.x, p.y + r + 12);
@@ -1027,14 +1042,14 @@
     drawInbound(ctx, L) {
       for (const s of this.storms) {
         if (s.dead) continue;
-        if (s.lon >= WEST && s.lon <= EAST && s.lat >= SOUTH && s.lat <= NORTH) continue;
+        if (s.lon >= this.cfg.west && s.lon <= this.cfg.east && s.lat >= this.cfg.south && s.lat <= this.cfg.north) continue;
         const p = this.xy(s.lon, s.lat, L);
         const x = clamp(p.x, L.x + 10, L.x + L.w - 10);
         const y = clamp(p.y, L.y + 10, L.y + L.h - 10);
         const col = s.super ? "#fb7185" : s.devil ? "#c4b5fd" : "#e07068";
         ctx.fillStyle = col;
         ctx.beginPath();
-        if (s.lon > EAST) {
+        if (s.lon > this.cfg.east) {
           ctx.moveTo(L.x + L.w - 4, y);
           ctx.lineTo(L.x + L.w - 14, y - 7);
           ctx.lineTo(L.x + L.w - 14, y + 7);
@@ -1045,19 +1060,19 @@
         }
         ctx.closePath();
         ctx.fill();
-        ctx.font = "600 10px 'Noto Sans TC', sans-serif";
-        ctx.textAlign = s.lon > EAST ? "right" : "center";
+        ctx.font = "600 10px 'Noto Sans TC', 'Noto Sans JP', sans-serif";
+        ctx.textAlign = s.lon > this.cfg.east ? "right" : "center";
         ctx.fillText(
           s.name,
-          s.lon > EAST ? L.x + L.w - 16 : x,
-          s.lon > EAST ? y - 10 : L.y + L.h - 18
+          s.lon > this.cfg.east ? L.x + L.w - 16 : x,
+          s.lon > this.cfg.east ? y - 10 : L.y + L.h - 18
         );
       }
     }
 
     drawHk(ctx, L) {
       const p = this.xy(this.hk.lon, this.hk.lat, L);
-      const home = this.xy(HK0.lon, HK0.lat, L);
+      const home = this.xy(this.cfg.home.lon, this.cfg.home.lat, L);
       if (this.dashTrail && this.dashTrail.length > 1) {
         ctx.strokeStyle = "rgba(110,196,216,0.55)";
         ctx.lineWidth = 3;
@@ -1069,7 +1084,7 @@
         });
         ctx.stroke();
       }
-      if (Math.hypot(this.hk.lon - HK0.lon, this.hk.lat - HK0.lat) > 0.35) {
+      if (Math.hypot(this.hk.lon - this.cfg.home.lon, this.hk.lat - this.cfg.home.lat) > 0.35) {
         ctx.setLineDash([4, 3]);
         ctx.beginPath(); ctx.moveTo(home.x, home.y); ctx.lineTo(p.x, p.y);
         ctx.strokeStyle = "rgba(201,161,91,0.45)"; ctx.lineWidth = 1.2; ctx.stroke();
@@ -1078,12 +1093,12 @@
         ctx.fillStyle = "rgba(231,226,216,0.35)"; ctx.fill();
         ctx.strokeStyle = "rgba(201,161,91,0.7)"; ctx.lineWidth = 1; ctx.stroke();
         ctx.fillStyle = "rgba(231,226,216,0.55)";
-        ctx.font = "11px 'Noto Sans TC', sans-serif";
+        ctx.font = "11px 'Noto Sans TC', 'Noto Sans JP', sans-serif";
         ctx.textAlign = "left";
-        ctx.fillText("原址", home.x + 7, home.y + 4);
+        ctx.fillText(this.cfg.copy.homeMark, home.x + 7, home.y + 4);
       }
       if (this.leeT > 0) {
-        const rad = (10 / (EAST - WEST)) * L.w * (1 + 0.05 * Math.sin(this.time * 6));
+        const rad = (10 / (this.cfg.east - this.cfg.west)) * L.w * (1 + 0.05 * Math.sin(this.time * 6));
         ctx.beginPath(); ctx.arc(p.x, p.y, rad, 0, Math.PI * 2);
         ctx.strokeStyle = "rgba(201,161,91,0.85)"; ctx.lineWidth = 2; ctx.stroke();
         ctx.fillStyle = "rgba(201,161,91,0.12)"; ctx.fill();
@@ -1107,9 +1122,9 @@
       ctx.fillStyle = this.dashT > 0 ? "#d8f4fa" : "#e7e2d8"; ctx.fill();
       ctx.strokeStyle = this.dashT > 0 ? "#6ec4d8" : "#c4453c"; ctx.lineWidth = 1.6; ctx.stroke();
       ctx.fillStyle = "#e7e2d8";
-      ctx.font = "700 13px 'Noto Sans TC', sans-serif";
+      ctx.font = "700 13px 'Noto Sans TC', 'Noto Sans JP', sans-serif";
       ctx.textAlign = "left";
-      ctx.fillText(this.dashT > 0 ? "香港 · 快閃" : "香港", p.x + 10, p.y - 6);
+      ctx.fillText(this.dashT > 0 ? `${this.cfg.copy.home} · ${this.cfg.copy.dashShort}` : this.cfg.copy.home, p.x + 10, p.y - 6);
     }
   }
 
@@ -1119,6 +1134,7 @@
   const sparkCtx = spark.getContext("2d");
   let helpFrom = "title";
   let muted = false;
+  let locale = "hk";
 
   function drawSpark(data) {
     const w = spark.width, h = spark.height;
@@ -1138,17 +1154,59 @@
 
   function showRecords() {
     const s = save.load();
+    const c = MAPS[locale].copy;
     $("records").textContent =
-      `收市紀錄 ${s.bestClose > 0 ? fmtHsi(s.bestClose) : "—"} / 逼走氣旋 ${s.stormsDodged}`;
+      `${c.recClose} ${s.bestClose > 0 ? fmtHsi(s.bestClose) : "—"} / ${c.recDodge} ${s.stormsDodged}`;
+  }
+
+  function applyLocale(id) {
+    locale = id === "jp" ? "jp" : "hk";
+    const cfg = MAPS[locale];
+    const c = cfg.copy;
+    document.documentElement.lang = c.locale || (locale === "jp" ? "ja" : "zh-HK");
+    document.documentElement.classList.toggle("locale-jp", locale === "jp");
+    document.title = c.title;
+    $("titleKicker").textContent = c.kicker;
+    $("titleName").textContent = c.title;
+    $("titleSub").textContent = c.sub;
+    $("titleLede").textContent = c.lede;
+    $("start").textContent = c.start;
+    $("helpBtn").textContent = c.help;
+    $("helpTitle").textContent = c.help;
+    $("helpList").innerHTML = cfg.help.map((line) => `<li>${line}</li>`).join("");
+    $("helpBack").textContent = c.back;
+    $("pauseTitle").textContent = c.pause;
+    $("pauseLede").textContent = c.pauseLede;
+    $("resume").textContent = c.resume;
+    $("pauseHelp").textContent = c.help;
+    $("quit").textContent = c.quit;
+    $("tickerIndex").textContent = c.index;
+    $("tickerHint").textContent = c.indexHint;
+    $("lee").textContent = c.field;
+    $("dash").textContent = c.dash;
+    $("halt").textContent = c.halt;
+    $("leeTouch").textContent = c.fieldShort;
+    $("dashTouch").textContent = c.dashShort;
+    $("haltTouch").textContent = c.haltShort;
+    $("endless").textContent = c.endless;
+    $("leaveWin").textContent = c.winLeave;
+    $("replay").textContent = c.replay;
+    $("pickHk").classList.toggle("on", locale === "hk");
+    $("pickJp").classList.toggle("on", locale === "jp");
+    $("mute").textContent = muted ? (locale === "jp" ? "静" : "靜") : (locale === "jp" ? "音" : "聲");
+    $("mute").setAttribute("aria-label", muted ? c.muteOff : c.muteOn);
+    $("pauseBtn").setAttribute("aria-label", c.pause);
+    showRecords();
   }
 
   const ui = {
     hud(g) {
+      const c = g.cfg.copy;
       const sig = $("sig");
-      sig.textContent = sigLabel(g.signal);
+      sig.textContent = sigLabel(g.cfg, g.signal);
       sig.className = "chip" + (g.signal >= 9 ? " hot" : g.signal === 8 ? " warn" : "");
       const cy = $("cycle");
-      cy.textContent = (g.cycle === "bull" ? "牛市" : "熊市") + " " + Math.max(0, g.cycleT).toFixed(0) + "s";
+      cy.textContent = (g.cycle === "bull" ? c.bull : c.bear) + " " + Math.max(0, g.cycleT).toFixed(0) + "s";
       cy.className = "chip " + g.cycle;
       const hsi = $("hsi");
       hsi.textContent = fmtHsi(g.hsi);
@@ -1156,43 +1214,38 @@
       hsi.className = g.haltT > 0 ? "halted" : up ? "up" : "down";
       const d = $("delta");
       d.className = g.haltT > 0 ? "halted" : up ? "up" : "down";
-      d.textContent = g.haltT > 0 ? `停市 ${g.haltT.toFixed(1)}s` : `${up ? "+" : ""}${g.hsiDelta.toFixed(0)}`;
+      d.textContent = g.haltT > 0 ? `${c.haltShort} ${g.haltT.toFixed(1)}s` : `${up ? "+" : ""}${g.hsiDelta.toFixed(0)}`;
       const ban = $("banner");
       if (g.banner) { ban.textContent = g.banner; ban.classList.remove("hidden"); }
       else ban.classList.add("hidden");
       const live = g.storms.filter((s) => !s.dead).length;
       $("stats").innerHTML =
-        `${g.endless ? `無盡 ${fmtTime(Math.max(0, g.time - SEASON))}` : `風季剩餘 ${fmtTime(Math.max(0, SEASON - g.time))}`}${g.time >= HARD_AT || g.endless ? " · 後半" : ""}${g.endless ? " · 預測路徑 95%" : ""}<br>` +
-        `力場 ${g.leeCharges}/${LEE_MAX}${g.leeT > 0 ? " · 展開中" : ""}<br>` +
-        `快閃 ${g.endless ? "不限" : `${g.dashCharges}/${DASH_MAX}`}${g.dashT > 0 ? ` · ${g.dashT.toFixed(1)}s` : g.dashCd > 0 ? ` · 冷卻 ${g.dashCd.toFixed(0)}s` : ""}<br>` +
-        `${g.inGaleCircle() ? "滯留風圈 · 熊市延長" : "未入風圈 · 熊市縮短"}<br>` +
-        `停市 ${g.haltCharges}/1${g.haltT > 0 ? " · 生效中" : g.time >= HARD_AT ? "" : " · 後半解鎖"}<br>` +
-        `在場氣旋 ${live} · 消散 ${g.dodged}<br>` +
-        `香港 ${g.hk.lat.toFixed(2)}°N ${g.hk.lon.toFixed(2)}°E<br>` +
-        `${g._nearest > 0 ? `最近風暴 ${Math.round(g._nearest)} km` : "暫無威脅"}<br>` +
-        `<span class="desk-only">WASD 搬遷 · Shift 快閃 · 空白力場 · F 停市 · P 暫停</span>`;
+        `${g.endless ? `${c.endlessHud} ${fmtTime(Math.max(0, g.time - SEASON))}` : `${c.seasonLeft} ${fmtTime(Math.max(0, SEASON - g.time))}`}${g.time >= HARD_AT || g.endless ? ` · ${c.hardTag}` : ""}${g.endless ? ` · ${c.predHud}` : ""}<br>` +
+        `${c.field} ${g.leeCharges}/${LEE_MAX}${g.leeT > 0 ? ` · ${c.leeOn}` : ""}<br>` +
+        `${c.dashShort} ${g.endless ? "∞" : `${g.dashCharges}/${DASH_MAX}`}${g.dashT > 0 ? ` · ${g.dashT.toFixed(1)}s` : g.dashCd > 0 ? ` · ${c.dashCd} ${g.dashCd.toFixed(0)}s` : ""}<br>` +
+        `${g.inGaleCircle() ? c.inCircle : c.outCircle}<br>` +
+        `${c.haltShort} ${g.haltCharges}/1${g.haltT > 0 ? ` · ${c.haltOn}` : g.time >= HARD_AT ? "" : ` · ${c.haltLock}`}<br>` +
+        `${c.liveLabel} ${live} · ${g.dodged}<br>` +
+        `${c.home} ${g.hk.lat.toFixed(2)}°N ${g.hk.lon.toFixed(2)}°E<br>` +
+        `${g._nearest > 0 ? `${c.nearest} ${Math.round(g._nearest)} km` : c.noThreat}<br>` +
+        `<span class="desk-only">${c.controls}</span>`;
       $("lee").disabled = !(g.leeCharges > 0 && g.leeCd <= 0 && g.leeT <= 0);
       $("dash").disabled = !((g.endless || g.dashCharges > 0) && g.dashT <= 0 && g.dashCd <= 0);
       $("halt").disabled = !(g.time >= HARD_AT && g.haltCharges > 0 && g.haltT <= 0);
       const hint = $("hint");
-      const hintText = g.haltT > 0
-        ? `停市剩餘 ${g.haltT.toFixed(1)} 秒 · 氣旋仍在移動`
+      hint.textContent = g.haltT > 0
+        ? `${c.haltShort} ${g.haltT.toFixed(1)}s`
         : g.dashT > 0
-          ? `快閃剩餘 ${g.dashT.toFixed(1)} 秒`
+          ? `${c.dashShort} ${g.dashT.toFixed(1)}s`
           : g.dashCd > 0
-            ? `快閃冷卻 ${g.dashCd.toFixed(0)} 秒`
+            ? `${c.dashShort} ${c.dashCd} ${g.dashCd.toFixed(0)}s`
             : g.endless
-              ? "無盡模式 · 預測路徑準確度 95% · Shift 快閃不限次"
+              ? c.endlessFlash
               : g.leeCd > 0
-                ? `李氏力場冷卻 ${g.leeCd.toFixed(0)} 秒`
+                ? `${c.field} ${c.dashCd} ${g.leeCd.toFixed(0)}s`
                 : g.inGaleCircle()
-                  ? "滯留風圈 · 熊市延長 · Shift 快閃五次"
-                  : g.dashCharges > 0
-                    ? "Shift／E：快閃三秒（每季五次、冷卻十秒）· 空白力場 · F 停市"
-                    : g.leeCharges > 0
-                      ? "空白鍵／力場：發動李氏力場（每季三次）· F 鍵停市"
-                      : "力場與快閃已用盡 · F 鍵可停市一次";
-      hint.textContent = hintText;
+                  ? c.inCircle
+                  : c.controls;
       hint.classList.remove("hidden");
       drawSpark(g.spark);
     },
@@ -1206,39 +1259,37 @@
       $("touch").classList.remove("hidden");
     },
     offerWin(g) {
+      const c = g.cfg.copy;
       $("pause").classList.add("hidden");
       const el = $("end");
       el.classList.remove("hidden");
-      $("endKicker").textContent = "風季結束";
-      $("endTitle").textContent = "守住了";
-      $("endBody").textContent = "恆指未歸零。可以收市離開，或以無盡模式繼續——氣旋不會停。";
+      $("endKicker").textContent = c.winKicker;
+      $("endTitle").textContent = c.winTitle;
+      $("endBody").textContent = c.winBody;
       $("endStats").innerHTML = [
-        ["現時恆指", fmtHsi(g.hsi), true],
-        ["消散／逼走", String(g.dodged), false],
+        [c.index, fmtHsi(g.hsi), true],
+        [c.home, String(g.dodged), false],
       ].map(([l, v, up]) => `<div class="stat"><div class="lbl">${l}</div><div class="val${up ? " up" : ""}">${v}</div></div>`).join("");
       $("endless").classList.remove("hidden");
       $("leaveWin").classList.remove("hidden");
       $("replay").classList.add("hidden");
     },
     end(win, g) {
+      const c = g.cfg.copy;
       $("hud").classList.add("hidden");
       $("touch").classList.add("hidden");
       $("pause").classList.add("hidden");
       const el = $("end");
       el.classList.remove("hidden");
       const haltFail = !win && g.loseKind === "halt";
-      $("endKicker").textContent = win ? "風季結束" : haltFail ? "強制收市" : "市場停擺";
-      $("endTitle").textContent = win ? "收市" : haltFail ? "停市失敗" : "恆指歸零";
-      $("endBody").textContent = win
-        ? "你把香港熬過這個風季。以下是收市指數。"
-        : haltFail
-          ? "停市五秒結束，八號或以上警告仍未除下。"
-          : "八號風球疊加熊市，指數再無支撐。";
+      $("endKicker").textContent = win ? c.winKicker : haltFail ? c.haltKicker : c.overKicker;
+      $("endTitle").textContent = win ? c.winClose : haltFail ? c.haltTitle : c.overTitle;
+      $("endBody").textContent = win ? c.winBodyEnd : haltFail ? c.haltBody : c.overBody;
       $("endStats").innerHTML = [
-        ["收市恆指", fmtHsi(g.hsi), win],
-        ["消散／逼走", String(g.dodged), false],
-        ["周期", g.cycle === "bull" ? "牛" : "熊", false],
-        ["結果", win ? "守住" : "失守", false],
+        [c.index, fmtHsi(g.hsi), win],
+        [c.home, String(g.dodged), false],
+        [g.cycle === "bull" ? c.bull : c.bear, g.cycle === "bull" ? c.bull : c.bear, false],
+        [win ? c.winTitle : c.overTitle, win ? c.winTitle : c.overTitle, false],
       ].map(([l, v, up]) => `<div class="stat"><div class="lbl">${l}</div><div class="val${up ? " up" : ""}">${v}</div></div>`).join("");
       $("endless").classList.add("hidden");
       $("leaveWin").classList.add("hidden");
@@ -1246,7 +1297,7 @@
     },
   };
 
-  const game = new Game(canvas, ui);
+  let game = new Game(canvas, ui, locale);
   const resize = () => {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const r = canvas.getBoundingClientRect();
@@ -1273,6 +1324,7 @@
 
   function openHelp(from) {
     helpFrom = from;
+    applyLocale(locale);
     $("title").classList.add("hidden");
     $("pause").classList.add("hidden");
     $("help").classList.remove("hidden");
@@ -1283,23 +1335,32 @@
     else $("title").classList.remove("hidden");
   }
 
+  async function boot() {
+    audio.unlock();
+    audio.startAmbience();
+    game.stop();
+    game = new Game(canvas, ui, locale);
+    await game.load();
+    $("title").classList.add("hidden");
+    $("end").classList.add("hidden");
+    $("help").classList.add("hidden");
+    $("pause").classList.add("hidden");
+    $("hud").classList.remove("hidden");
+    $("touch").classList.remove("hidden");
+    applyLocale(locale);
+    game.start();
+  }
+
+  $("pickHk").onclick = () => applyLocale("hk");
+  $("pickJp").onclick = () => applyLocale("jp");
   $("helpBtn").onclick = () => openHelp("title");
   $("pauseHelp").onclick = () => openHelp("pause");
   $("helpBack").onclick = closeHelp;
   $("start").onclick = async () => {
     $("start").disabled = true;
-    audio.unlock();
-    audio.startAmbience();
-    try {
-      if (!game.map) await game.load();
-      $("title").classList.add("hidden");
-      $("end").classList.add("hidden");
-      $("hud").classList.remove("hidden");
-      $("touch").classList.remove("hidden");
-      game.start();
-    } catch (err) {
-      $("start").disabled = false;
-      $("records").textContent = err instanceof Error ? err.message : "未能載入";
+    try { await boot(); }
+    catch (err) {
+      $("records").textContent = err instanceof Error ? err.message : MAPS[locale].copy.loadFail;
     } finally {
       $("start").disabled = false;
     }
@@ -1318,22 +1379,17 @@
     $("hud").classList.add("hidden");
     $("touch").classList.add("hidden");
     $("title").classList.remove("hidden");
-    showRecords();
+    applyLocale(locale);
   };
   $("mute").onclick = () => {
     muted = !muted;
     audio.setMuted(muted);
-    $("mute").textContent = muted ? "靜" : "聲";
-    $("mute").setAttribute("aria-label", muted ? "開啟聲音" : "靜音");
+    applyLocale(locale);
   };
   $("replay").onclick = async () => {
-    audio.unlock();
-    audio.startAmbience();
-    if (!game.map) await game.load();
-    $("end").classList.add("hidden");
-    $("hud").classList.remove("hidden");
-    $("touch").classList.remove("hidden");
-    game.start();
+    $("replay").disabled = true;
+    try { await boot(); }
+    finally { $("replay").disabled = false; }
   };
   $("endless").onclick = () => game.continueEndless();
   $("leaveWin").onclick = () => game.leaveWin();
@@ -1362,5 +1418,6 @@
   pad.onpointerup = padUp;
   pad.onpointercancel = padUp;
 
-  showRecords();
+  applyLocale("hk");
+
 })();
