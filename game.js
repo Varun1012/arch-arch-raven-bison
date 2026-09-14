@@ -508,7 +508,9 @@
         devil,
         super: superDevil,
         galeMul,
+        forecast: [], forecastAcc: true, forecastBias: 0, forecastFakeJapan: false, forecastT: 0,
       });
+      if (this.endless) this.initForecast(this.storms[this.storms.length - 1]);
       const where = origin === "east" ? "自太平洋東面逼近" : origin === "south" ? "自南海以南北上" : "於洋面生成";
       const kind = superDevil ? "超級魔鬼風暴" : devil ? "魔鬼風暴" : "熱帶低氣壓";
       this.flash(`${kind} ${name} ${where}`, superDevil ? 2.8 : devil ? 2.4 : 1.8);
@@ -516,16 +518,44 @@
       else if (devil) this.trauma = 0.55;
     }
 
-    envHeading(s) {
+    envHeading(s, bias = 0) {
       const wobble = Math.sin(s.age * 0.35 + s.lon) * 12;
       if (s.steer === "japan") {
         const t = clamp((s.age - s.recurveAt) / 7, 0, 1);
         const e = t * t * (3 - 2 * t);
-        return lerpHeading(276 + wobble * 0.35, 38 + wobble * 0.4, e);
+        return lerpHeading(276 + wobble * 0.35, 38 + wobble * 0.4, e) + bias;
       }
       const latF = clamp((s.lat - 8) / 18, 0, 1);
       const ageF = clamp(s.age / 16, 0, 1);
-      return (272 + latF * ageF * 70 + wobble + 360) % 360;
+      return (272 + latF * ageF * 70 + wobble + bias + 360) % 360;
+    }
+
+    initForecast(s) {
+      s.forecastAcc = Math.random() < 0.9;
+      s.forecastBias = s.forecastAcc
+        ? Math.random() * 18 - 9
+        : (55 + Math.random() * 50) * (Math.random() < 0.5 ? -1 : 1);
+      s.forecastFakeJapan = !s.forecastAcc && s.steer === "west" && Math.random() < 0.55;
+      s.forecastT = 0;
+      this.rebuildForecast(s);
+    }
+
+    rebuildForecast(s) {
+      const pts = [{ lon: s.lon, lat: s.lat }];
+      let lon = s.lon, lat = s.lat, heading = s.heading, age = s.age;
+      const ghost = { ...s, lon, lat, heading, age, steer: s.forecastFakeJapan ? "japan" : s.steer };
+      const dt = 0.85;
+      for (let i = 0; i < 22; i++) {
+        age += dt;
+        ghost.age = age; ghost.lon = lon; ghost.lat = lat;
+        heading = lerpHeading(heading, this.envHeading(ghost, s.forecastBias), 0.08);
+        const rad = heading * Math.PI / 180;
+        lon += Math.sin(rad) * s.speed * dt;
+        lat += Math.cos(rad) * s.speed * dt;
+        pts.push({ lon, lat });
+      }
+      s.forecast = pts;
+      s.forecastT = 9;
     }
 
     moveStorms(dt) {
@@ -551,6 +581,10 @@
         s.kt = clamp(s.kt, 0, s.super ? 190 : s.devil ? 165 : 145);
         if (s.age % 0.35 < dt) s.track.push({ lon: s.lon, lat: s.lat });
         if (s.track.length > 90) s.track.shift();
+        if (this.endless) {
+          s.forecastT -= dt;
+          if (s.forecastT <= 0 || !s.forecast || s.forecast.length < 2) this.rebuildForecast(s);
+        }
         const off = s.lon < WEST - 6 || s.lon > EAST + 16 || s.lat < SOUTH - 9 || s.lat > NORTH + 5;
         if (s.kt < 16 || off) {
           s.dead = true;
@@ -732,7 +766,8 @@
       this.awaitingWin = false;
       this.endless = true;
       this.paused = false;
-      this.flash("無盡模式 · 超級魔鬼延續 · 快閃不限次", 2.6);
+      this.flash("無盡模式 · 預測路徑準確度九成 · 快閃不限次", 2.8);
+      for (const s of this.storms) if (!s.dead) this.initForecast(s);
       this.ui.resumePlay();
     }
     leaveWin() {
@@ -794,6 +829,7 @@
       this.drawGrid(ctx, L);
       this.drawLand(ctx, L);
       this.drawTracks(ctx, L);
+      if (this.endless) this.drawForecasts(ctx, L);
       this.drawPlaces(ctx, L);
       this.drawStorms(ctx, L);
       this.drawHk(ctx, L);
@@ -857,6 +893,29 @@
         });
         ctx.stroke();
         ctx.setLineDash([]);
+      }
+    }
+
+    drawForecasts(ctx, L) {
+      for (const s of this.storms) {
+        if (s.dead || !s.forecast || s.forecast.length < 2) continue;
+        ctx.strokeStyle = s.super ? "rgba(253,164,175,0.85)" : s.devil ? "rgba(216,180,254,0.8)" : "rgba(250,204,21,0.75)";
+        ctx.lineWidth = 1.8;
+        ctx.setLineDash([7, 5]);
+        ctx.beginPath();
+        s.forecast.forEach((t, i) => {
+          const p = this.xy(t.lon, t.lat, L);
+          if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
+        });
+        ctx.stroke();
+        ctx.setLineDash([]);
+        const last = this.xy(s.forecast[s.forecast.length - 1].lon, s.forecast[s.forecast.length - 1].lat, L);
+        ctx.beginPath(); ctx.arc(last.x, last.y, 3.2, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(250,204,21,0.9)"; ctx.fill();
+        ctx.fillStyle = "rgba(250,204,21,0.7)";
+        ctx.font = "600 10px 'Noto Sans TC', sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("預測", last.x, last.y - 8);
       }
     }
 
@@ -1046,7 +1105,7 @@
       else ban.classList.add("hidden");
       const live = g.storms.filter((s) => !s.dead).length;
       $("stats").innerHTML =
-        `${g.endless ? `無盡 ${fmtTime(Math.max(0, g.time - SEASON))}` : `風季剩餘 ${fmtTime(Math.max(0, SEASON - g.time))}`}${g.time >= HARD_AT || g.endless ? " · 下半季" : ""}<br>` +
+        `${g.endless ? `無盡 ${fmtTime(Math.max(0, g.time - SEASON))}` : `風季剩餘 ${fmtTime(Math.max(0, SEASON - g.time))}`}${g.time >= HARD_AT || g.endless ? " · 下半季" : ""}${g.endless ? " · 預測路徑 90%" : ""}<br>` +
         `力場 ${g.leeCharges}/${LEE_MAX}${g.leeT > 0 ? " · 展開中" : ""}<br>` +
         `快閃 ${g.endless ? "不限" : `${g.dashCharges}/${DASH_MAX}`}${g.dashT > 0 ? ` · ${g.dashT.toFixed(1)}s` : g.dashCd > 0 ? ` · 冷卻 ${g.dashCd.toFixed(0)}s` : ""}<br>` +
         `${g.inGaleCircle() ? "滯留風圈 · 熊市延長" : "未入風圈 · 熊市縮短"}<br>` +
@@ -1066,7 +1125,7 @@
           : g.dashCd > 0
             ? `快閃冷卻 ${g.dashCd.toFixed(0)} 秒`
             : g.endless
-              ? "無盡模式 · 超級魔鬼會再來 · Shift 快閃不限次"
+              ? "無盡模式 · 預測路徑準確度 90% · Shift 快閃不限次"
               : g.leeCd > 0
                 ? `李氏力場冷卻 ${g.leeCd.toFixed(0)} 秒`
                 : g.inGaleCircle()
