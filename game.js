@@ -97,8 +97,9 @@
 
   const audio = {
     ctx: null, master: null, sfx: null, amb: null,
-    muted: false, started: false,
-    rainGain: null, windGain: null, windFilter: null,
+    muted: false, started: false, lastSignal: 0,
+    rainGain: null, windGain: null, windFilter: null, musicGain: null, musicEl: null,
+    mix: { 0: [1, 0], 1: [1, 0.1], 3: [0.8, 0.2], 8: [0.6, 0.4], 9: [0.4, 0.6], 10: [0.2, 0.8] },
     noiseBuf(seconds = 2) {
       const ac = this.ctx, n = ac.sampleRate * seconds;
       const buf = ac.createBuffer(1, n, ac.sampleRate);
@@ -113,7 +114,7 @@
         this.sfx = this.ctx.createGain();
         this.amb = this.ctx.createGain();
         this.sfx.gain.value = 0.7;
-        this.amb.gain.value = 0.45;
+        this.amb.gain.value = 1;
         this.sfx.connect(this.master);
         this.amb.connect(this.master);
         this.master.connect(this.ctx.destination);
@@ -121,12 +122,24 @@
       }
       if (this.ctx.state === "suspended") void this.ctx.resume();
     },
+    applyMix() {
+      if (!this.ctx || !this.rainGain || !this.windGain || !this.musicGain) return;
+      const t = this.ctx.currentTime;
+      const pair = this.mix[this.lastSignal] || this.mix[0];
+      this.musicGain.gain.setTargetAtTime(pair[0] * 0.48, t, 0.35);
+      this.rainGain.gain.setTargetAtTime(pair[1] * 0.52 * 0.58, t, 0.4);
+      this.windGain.gain.setTargetAtTime(pair[1] * 0.52 * 0.42, t, 0.4);
+      if (this.windFilter) {
+        const freq = this.lastSignal >= 10 ? 420 : this.lastSignal >= 8 ? 340 : 240;
+        this.windFilter.frequency.setTargetAtTime(freq, t, 0.5);
+      }
+    },
     startAmbience() {
       if (!this.ctx || !this.amb || this.started) return;
       this.started = true;
       const ac = this.ctx, buf = this.noiseBuf(3);
       this.rainGain = ac.createGain();
-      this.rainGain.gain.value = 0.18;
+      this.rainGain.gain.value = 0;
       const rainFilter = ac.createBiquadFilter();
       rainFilter.type = "highpass";
       rainFilter.frequency.value = 1800;
@@ -135,7 +148,7 @@
       rain.connect(rainFilter); rainFilter.connect(this.rainGain); this.rainGain.connect(this.amb);
       rain.start();
       this.windGain = ac.createGain();
-      this.windGain.gain.value = 0.08;
+      this.windGain.gain.value = 0;
       this.windFilter = ac.createBiquadFilter();
       this.windFilter.type = "bandpass";
       this.windFilter.frequency.value = 280;
@@ -144,20 +157,29 @@
       wind.buffer = buf; wind.loop = true;
       wind.connect(this.windFilter); this.windFilter.connect(this.windGain); this.windGain.connect(this.amb);
       wind.start();
+      this.musicGain = ac.createGain();
+      this.musicGain.gain.value = 0.48;
+      this.musicGain.connect(this.amb);
+      this.musicEl = new Audio("audio/breezy-loop.mp3");
+      this.musicEl.loop = true;
+      this.musicEl.preload = "auto";
+      this.musicEl.crossOrigin = "anonymous";
+      try {
+        ac.createMediaElementSource(this.musicEl).connect(this.musicGain);
+      } catch {
+        this.musicEl.volume = 0.48;
+      }
+      void this.musicEl.play().catch(() => {});
+      this.applyMix();
     },
     setMuted(v) {
       this.muted = v;
       if (this.master) this.master.gain.setTargetAtTime(v ? 0 : 1, this.ctx.currentTime, 0.03);
+      if (this.musicEl) this.musicEl.muted = v;
     },
     setStorm(signal) {
-      if (!this.ctx || !this.rainGain || !this.windGain || !this.windFilter) return;
-      const t = this.ctx.currentTime;
-      const rain = signal <= 1 ? 0.12 : signal <= 3 ? 0.2 : signal <= 8 ? 0.32 : 0.42;
-      const wind = signal <= 1 ? 0.05 : signal <= 3 ? 0.1 : signal <= 8 ? 0.2 : signal >= 10 ? 0.38 : 0.28;
-      const freq = signal >= 10 ? 420 : signal >= 8 ? 340 : 240;
-      this.rainGain.gain.setTargetAtTime(rain, t, 0.4);
-      this.windGain.gain.setTargetAtTime(wind, t, 0.4);
-      this.windFilter.frequency.setTargetAtTime(freq, t, 0.5);
+      this.lastSignal = signal;
+      this.applyMix();
     },
     beep(freq, dur, type, gain = 0.12, slide = 0) {
       if (!this.ctx || !this.sfx) return;
@@ -194,7 +216,10 @@
     lose() { this.beep(220, 0.4, "triangle", 0.1, -140); },
     field() { this.beep(523, 0.12, "sine", 0.09); this.beep(784, 0.28, "triangle", 0.07); },
     dash() { this.beep(880, 0.1, "square", 0.07, 420); this.beep(1320, 0.22, "triangle", 0.06, -200); },
-    resume() { if (this.ctx && this.ctx.state === "suspended") void this.ctx.resume(); },
+    resume() {
+      if (this.ctx && this.ctx.state === "suspended") void this.ctx.resume();
+      if (this.musicEl && this.musicEl.paused) void this.musicEl.play().catch(() => {});
+    },
   };
 
   class Game {
@@ -472,6 +497,8 @@
         }
       }
       if (!pos) return;
+      const northStart = Math.random() < 0.4;
+      if (northStart) pos.heading = (338 + Math.random() * 44) % 360;
       let devil = false;
       let superDevil = false;
       if (this.endless) {
@@ -507,7 +534,9 @@
         devil,
         super: superDevil,
         galeMul,
-        forecast: [], forecastAcc: true, forecastBias: 0, forecastFakeJapan: false, forecastT: 0,
+        initDur: northStart ? 4.2 + Math.random() * 2.8 : 2.4 + Math.random() * 2,
+        northStart,
+        forecast: [], forecastCircles: [], forecastAcc: true, forecastBias: 0, forecastFakeJapan: false, forecastT: 0,
       });
       if (this.endless) this.initForecast(this.storms[this.storms.length - 1]);
       const where = origin === "east" ? "自太平洋東面逼近" : origin === "south" ? "自南海以南北上" : "於洋面生成";
@@ -530,31 +559,53 @@
     }
 
     initForecast(s) {
-      s.forecastAcc = Math.random() < 0.9;
+      s.forecastAcc = Math.random() < 0.95;
       s.forecastBias = s.forecastAcc
-        ? Math.random() * 18 - 9
-        : (55 + Math.random() * 50) * (Math.random() < 0.5 ? -1 : 1);
+        ? Math.random() * 10 - 5
+        : (42 + Math.random() * 48) * (Math.random() < 0.5 ? -1 : 1);
       s.forecastFakeJapan = !s.forecastAcc && s.steer === "west" && Math.random() < 0.55;
       s.forecastT = 0;
       this.rebuildForecast(s);
     }
 
+    headingStep(s, heading, age, dt, bias, field) {
+      if (age < s.initDur) return heading;
+      let desired = this.envHeading({ ...s, heading, age }, bias);
+      if (field) {
+        const dlon = s.lon - this.hk.lon, dlat = s.lat - this.hk.lat;
+        const d = Math.hypot(dlon, dlat) || 0.01;
+        if (d < 10) {
+          const away = Math.atan2(dlon, dlat) * 180 / Math.PI;
+          desired = lerpHeading(desired, away, (1 - d / 10) * 0.55);
+        }
+      }
+      const delta = ((desired - heading + 540) % 360) - 180;
+      return heading + clamp(delta, -45 * dt, 45 * dt);
+    }
+
     rebuildForecast(s) {
       const pts = [{ lon: s.lon, lat: s.lat }];
+      const circles = [];
       let lon = s.lon, lat = s.lat, heading = s.heading, age = s.age;
       const ghost = { ...s, lon, lat, heading, age, steer: s.forecastFakeJapan ? "japan" : s.steer };
-      const dt = 0.85;
-      for (let i = 0; i < 22; i++) {
-        age += dt;
+      const dt = 0.25;
+      let t = 0, nextMark = 1;
+      while (t < 12) {
+        age += dt; t += dt;
         ghost.age = age; ghost.lon = lon; ghost.lat = lat;
-        heading = lerpHeading(heading, this.envHeading(ghost, s.forecastBias), 0.08);
+        heading = this.headingStep(ghost, heading, age, dt, s.forecastBias, false);
         const rad = heading * Math.PI / 180;
         lon += Math.sin(rad) * s.speed * dt;
         lat += Math.cos(rad) * s.speed * dt;
         pts.push({ lon, lat });
+        if (nextMark <= 3 && t + 1e-6 >= nextMark) {
+          circles.push({ lon, lat, rKm: (58 + nextMark * 64) * (s.forecastAcc ? 0.9 : 1.4) });
+          nextMark += 1;
+        }
       }
       s.forecast = pts;
-      s.forecastT = 9;
+      s.forecastCircles = circles;
+      s.forecastT = 8;
     }
 
     moveStorms(dt) {
@@ -562,16 +613,7 @@
       for (const s of this.storms) {
         if (s.dead) continue;
         s.age += dt;
-        let h = lerpHeading(s.heading, this.envHeading(s), 0.08);
-        if (field) {
-          const dlon = s.lon - this.hk.lon, dlat = s.lat - this.hk.lat;
-          const d = Math.hypot(dlon, dlat) || 0.01;
-          if (d < 10) {
-            const away = Math.atan2(dlon, dlat) * 180 / Math.PI;
-            h = lerpHeading(h, away, (1 - d / 10) * 0.55);
-          }
-        }
-        s.heading = h;
+        s.heading = this.headingStep(s, s.heading, s.age, dt, 0, field);
         const rad = s.heading * Math.PI / 180;
         s.lon += Math.sin(rad) * s.speed * dt;
         s.lat += Math.cos(rad) * s.speed * dt;
@@ -761,11 +803,11 @@
       this.ui.offerWin(this);
     }
     continueEndless() {
-      if (!this.awaitingWin || this.ended) return;
+      if (this.ended) return;
       this.awaitingWin = false;
       this.endless = true;
       this.paused = false;
-      this.flash("無盡模式 · 預測路徑準確度九成 · 快閃不限次", 2.8);
+      this.flash("無盡模式 · 預測路徑準確度九成五 · 快閃不限次", 2.8);
       for (const s of this.storms) if (!s.dead) this.initForecast(s);
       this.ui.resumePlay();
     }
@@ -907,6 +949,18 @@
           if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
         });
         ctx.stroke();
+        ctx.setLineDash([]);
+        (s.forecastCircles || []).forEach((c) => {
+          const p = this.xy(c.lon, c.lat, L);
+          const r = (c.rKm / 111) * (L.w / (EAST - WEST));
+          ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+          ctx.strokeStyle = "rgba(250,204,21,0.45)";
+          ctx.lineWidth = 1.4;
+          ctx.setLineDash([4, 3]);
+          ctx.stroke();
+          ctx.fillStyle = "rgba(250,204,21,0.07)";
+          ctx.fill();
+        });
         ctx.setLineDash([]);
         const last = this.xy(s.forecast[s.forecast.length - 1].lon, s.forecast[s.forecast.length - 1].lat, L);
         ctx.beginPath(); ctx.arc(last.x, last.y, 3.2, 0, Math.PI * 2);
@@ -1104,7 +1158,7 @@
       else ban.classList.add("hidden");
       const live = g.storms.filter((s) => !s.dead).length;
       $("stats").innerHTML =
-        `${g.endless ? `無盡 ${fmtTime(Math.max(0, g.time - SEASON))}` : `風季剩餘 ${fmtTime(Math.max(0, SEASON - g.time))}`}${g.time >= HARD_AT || g.endless ? " · 後半" : ""}${g.endless ? " · 預測路徑 90%" : ""}<br>` +
+        `${g.endless ? `無盡 ${fmtTime(Math.max(0, g.time - SEASON))}` : `風季剩餘 ${fmtTime(Math.max(0, SEASON - g.time))}`}${g.time >= HARD_AT || g.endless ? " · 後半" : ""}${g.endless ? " · 預測路徑 95%" : ""}<br>` +
         `力場 ${g.leeCharges}/${LEE_MAX}${g.leeT > 0 ? " · 展開中" : ""}<br>` +
         `快閃 ${g.endless ? "不限" : `${g.dashCharges}/${DASH_MAX}`}${g.dashT > 0 ? ` · ${g.dashT.toFixed(1)}s` : g.dashCd > 0 ? ` · 冷卻 ${g.dashCd.toFixed(0)}s` : ""}<br>` +
         `${g.inGaleCircle() ? "滯留風圈 · 熊市延長" : "未入風圈 · 熊市縮短"}<br>` +
@@ -1124,7 +1178,7 @@
           : g.dashCd > 0
             ? `快閃冷卻 ${g.dashCd.toFixed(0)} 秒`
             : g.endless
-              ? "無盡模式 · 預測路徑準確度 90% · Shift 快閃不限次"
+              ? "無盡模式 · 預測路徑準確度 95% · Shift 快閃不限次"
               : g.leeCd > 0
                 ? `李氏力場冷卻 ${g.leeCd.toFixed(0)} 秒`
                 : g.inGaleCircle()
