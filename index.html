@@ -103,11 +103,19 @@
         </div>
         <div id="banner" class="hidden"></div>
         <div class="bottom">
-          <div id="stats"></div>
-          <div class="actions desktop">
-            <button id="lee" type="button">李氏力場</button>
-            <button id="dash" type="button" class="dash">快閃移動</button>
-            <button id="halt" type="button" class="halt" disabled>停市 5 秒</button>
+          <div class="actions">
+            <div class="tool">
+              <span class="tool-l" id="haltL">停市</span>
+              <button id="halt" type="button" class="halt" disabled><span class="touch-n" id="haltN">1</span></button>
+            </div>
+            <div class="tool">
+              <span class="tool-l" id="dashL">快閃</span>
+              <button id="dash" type="button" class="dash"><span class="touch-n" id="dashN">5</span></button>
+            </div>
+            <div class="tool">
+              <span class="tool-l" id="leeL">力場</span>
+              <button id="lee" type="button"><span class="touch-n" id="leeN">3</span></button>
+            </div>
             <div id="hint" class="hint hidden"></div>
           </div>
         </div>
@@ -117,9 +125,6 @@
         <div id="pad">
           <div id="knob"></div>
         </div>
-        <button id="leeTouch" type="button" aria-label="力場"><span class="touch-n" id="leeN">3</span></button>
-        <button id="dashTouch" type="button" class="dash" aria-label="快閃"><span class="touch-n" id="dashN">5</span></button>
-        <button id="haltTouch" type="button" class="halt" aria-label="停市"><span class="touch-n" id="haltN">1</span></button>
       </div>
 
       <div id="end" class="overlay dim hidden">

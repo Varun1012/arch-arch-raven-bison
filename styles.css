@@ -231,21 +231,51 @@ button.icon {
 }
 .bottom {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: flex-end;
   gap: 0.7rem;
 }
-#stats {
-  background: rgba(11,18,24,0.7);
-  border: 1px solid var(--border);
-  border-radius: 0.5rem;
-  padding: 0.55rem 0.75rem;
-  font-size: 0.78rem;
-  color: #c4ccd6;
-  line-height: 1.45;
+#stats { display: none; }
+.actions { display: flex; flex-direction: column; gap: 0.55rem; pointer-events: auto; align-items: flex-end; }
+.tool {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
 }
-.actions { display: flex; flex-direction: column; gap: 0.4rem; pointer-events: auto; align-items: flex-end; }
-.actions button { pointer-events: auto; height: 2.8rem; }
+.tool-l {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: rgba(231,226,216,0.82);
+  text-align: right;
+}
+.actions button {
+  pointer-events: auto;
+  width: 3.6rem;
+  height: 3.6rem;
+  padding: 0;
+  border-radius: 50%;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#lee { background: rgba(231,226,216,0.65); color: var(--storm); }
+#dash { background: rgba(14, 58, 69, 0.72); }
+#halt { background: rgba(46, 16, 101, 0.72); }
+.touch-n {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 1.7rem;
+  font-weight: 500;
+  opacity: 0.5;
+  pointer-events: none;
+  line-height: 1;
+}
 .hint {
   background: var(--paper);
   color: var(--storm);
@@ -299,45 +329,14 @@ button.icon {
   border-radius: 50%;
   background: rgba(231,226,216,0.8);
 }
-#leeTouch, #haltTouch, #dashTouch {
-  pointer-events: auto;
-  position: absolute;
-  right: 1.1rem;
-  width: 4rem;
-  height: 4rem;
-  padding: 0;
-  border-radius: 50%;
-  font-size: 0.72rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-#leeTouch { background: rgba(231,226,216,0.7); }
-#dashTouch { background: rgba(14, 58, 69, 0.72); }
-#haltTouch { background: rgba(46, 16, 101, 0.72); }
-.touch-n {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 1.85rem;
-  font-weight: 500;
-  opacity: 0.5;
-  pointer-events: none;
-  line-height: 1;
-}
-#leeTouch { bottom: 1.8rem; }
-#dashTouch { bottom: 6.4rem; }
-#haltTouch { bottom: 11rem; }
+#leeTouch, #haltTouch, #dashTouch { display: none; }
 @media (min-width: 640px) {
   #touch { display: none !important; }
+  .actions button { width: 4rem; height: 4rem; }
+  .touch-n { font-size: 2rem; }
 }
 @media (max-width: 639px) {
-  .desktop { display: none; }
-  #stats { display: none; }
+  .hint { display: none !important; }
   .overlay { padding-bottom: 1.5rem; }
   .desk-only { display: none; }
 }

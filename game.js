@@ -1202,12 +1202,12 @@ const MAPS = {"hk":{"id":"hk","mapUrl":"maps/east-asia.json","west":105,"east":1
     $("quit").textContent = c.quit;
     $("tickerIndex").textContent = c.index;
     $("tickerHint").textContent = c.indexHint;
-    $("lee").textContent = c.field;
-    $("dash").textContent = c.dash;
-    $("halt").textContent = c.halt;
-    $("leeTouch").setAttribute("aria-label", c.fieldShort);
-    $("dashTouch").setAttribute("aria-label", c.dashShort);
-    $("haltTouch").setAttribute("aria-label", c.haltShort);
+    $("leeL").textContent = c.fieldShort;
+    $("dashL").textContent = c.dashShort;
+    $("haltL").textContent = c.haltShort;
+    $("lee").setAttribute("aria-label", c.fieldShort);
+    $("dash").setAttribute("aria-label", c.dashShort);
+    $("halt").setAttribute("aria-label", c.haltShort);
     $("endless").textContent = c.endless;
     $("leaveWin").textContent = c.winLeave;
     $("replay").textContent = c.replay;
@@ -1239,22 +1239,10 @@ const MAPS = {"hk":{"id":"hk","mapUrl":"maps/east-asia.json","west":105,"east":1
       if (g.banner) { ban.textContent = g.banner; ban.classList.remove("hidden"); }
       else ban.classList.add("hidden");
       const live = g.storms.filter((s) => !s.dead).length;
-      $("stats").innerHTML =
-        `${g.endless ? `${c.endlessHud} ${fmtTime(Math.max(0, g.time - SEASON))}` : `${c.seasonLeft} ${fmtTime(Math.max(0, SEASON - g.time))}`}${g.time >= HARD_AT || g.endless ? ` · ${c.hardTag}` : ""} · ${c.predHud}<br>` +
-        `${c.field} ${g.leeCharges}/${LEE_MAX}${g.leeT > 0 ? ` · ${c.leeOn}` : ""}<br>` +
-        `${c.dashShort} ${g.endless ? "∞" : `${g.dashCharges}/${DASH_MAX}`}${g.dashT > 0 ? ` · ${g.dashT.toFixed(1)}s` : g.dashCd > 0 ? ` · ${c.dashCd} ${g.dashCd.toFixed(0)}s` : ""}<br>` +
-        `${g.inGaleCircle() ? c.inCircle : c.outCircle}<br>` +
-        `${c.haltShort} ${g.haltCharges}/1${g.haltT > 0 ? ` · ${c.haltOn}` : g.time >= HARD_AT ? "" : ` · ${c.haltLock}`}<br>` +
-        `${c.liveLabel} ${live} · ${g.dodged}<br>` +
-        `${c.home} ${g.hk.lat.toFixed(2)}°N ${g.hk.lon.toFixed(2)}°E<br>` +
-        `${g._nearest > 0 ? `${c.nearest} ${Math.round(g._nearest)} km` : c.noThreat}<br>` +
-        `<span class="desk-only">${c.controls}</span>`;
+      g._live = live;
       $("lee").disabled = !(g.leeCharges > 0 && g.leeCd <= 0 && g.leeT <= 0);
       $("dash").disabled = !((g.endless || g.dashCharges > 0) && g.dashT <= 0 && g.dashCd <= 0);
       $("halt").disabled = !(g.time >= HARD_AT && g.haltCharges > 0 && g.haltT <= 0);
-      $("leeTouch").disabled = $("lee").disabled;
-      $("dashTouch").disabled = $("dash").disabled;
-      $("haltTouch").disabled = $("halt").disabled;
       $("leeN").textContent = String(g.leeCharges);
       $("dashN").textContent = g.endless ? "∞" : String(g.dashCharges);
       $("haltN").textContent = String(g.haltCharges);
@@ -1391,12 +1379,9 @@ const MAPS = {"hk":{"id":"hk","mapUrl":"maps/east-asia.json","west":105,"east":1
       $("start").disabled = false;
     }
   };
-  $("lee").onclick = () => game.tryLee();
-  $("dash").onclick = () => game.tryDash();
-  $("halt").onclick = () => game.tryHalt();
-  $("leeTouch").onpointerdown = (e) => { e.preventDefault(); game.actEdge = true; };
-  $("dashTouch").onpointerdown = (e) => { e.preventDefault(); game.tryDash(); };
-  $("haltTouch").onpointerdown = (e) => { e.preventDefault(); game.tryHalt(); };
+  $("lee").onpointerdown = (e) => { e.preventDefault(); game.tryLee(); };
+  $("dash").onpointerdown = (e) => { e.preventDefault(); game.tryDash(); };
+  $("halt").onpointerdown = (e) => { e.preventDefault(); game.tryHalt(); };
   $("pauseBtn").onclick = () => game.pause(true);
   $("resume").onclick = () => game.pause(false);
   $("quit").onclick = () => {
