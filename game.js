@@ -1259,21 +1259,6 @@ const MAPS = {"hk":{"id":"hk","mapUrl":"maps/east-asia.json","west":105,"east":1
       $("leeN").textContent = String(g.leeCharges);
       $("dashN").textContent = g.endless ? "∞" : String(g.dashCharges);
       $("haltN").textContent = String(g.haltCharges);
-      const hint = $("hint");
-      hint.textContent = g.haltT > 0
-        ? `${c.haltShort} ${g.haltT.toFixed(1)}s`
-        : g.dashT > 0
-          ? `${c.dashShort} ${g.dashT.toFixed(1)}s`
-          : g.dashCd > 0
-            ? `${c.dashShort} ${c.dashCd} ${g.dashCd.toFixed(0)}s`
-            : g.endless
-              ? c.endlessFlash
-              : g.leeCd > 0
-                ? `${c.field} ${c.dashCd} ${g.leeCd.toFixed(0)}s`
-                : g.inGaleCircle()
-                  ? c.inCircle
-                  : c.controls;
-      hint.classList.remove("hidden");
       drawSpark(g.spark);
     },
     pause(on) {

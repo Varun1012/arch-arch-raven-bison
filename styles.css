@@ -295,14 +295,7 @@ button.icon {
   pointer-events: none;
   line-height: 1;
 }
-.hint {
-  background: var(--paper);
-  color: var(--storm);
-  border-radius: 0.45rem;
-  padding: 0.4rem 0.7rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-}
+.hint { display: none !important; }
 .stats-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -355,7 +348,6 @@ button.icon {
   .touch-n { font-size: 2rem; }
 }
 @media (max-width: 639px) {
-  .hint { display: none !important; }
   .overlay { padding-bottom: 1.5rem; }
   .desk-only { display: none; }
 }
