@@ -308,6 +308,26 @@ button.icon {
   padding: 0;
   border-radius: 50%;
   font-size: 0.72rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+#leeTouch { background: rgba(231,226,216,0.7); }
+#dashTouch { background: rgba(14, 58, 69, 0.72); }
+#haltTouch { background: rgba(46, 16, 101, 0.72); }
+.touch-n {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 1.85rem;
+  font-weight: 500;
+  opacity: 0.5;
+  pointer-events: none;
+  line-height: 1;
 }
 #leeTouch { bottom: 1.8rem; }
 #dashTouch { bottom: 6.4rem; }
@@ -317,7 +337,7 @@ button.icon {
 }
 @media (max-width: 639px) {
   .desktop { display: none; }
-  #stats { margin-bottom: 13rem; }
+  #stats { display: none; }
   .overlay { padding-bottom: 1.5rem; }
   .desk-only { display: none; }
 }
