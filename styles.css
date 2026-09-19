@@ -170,7 +170,7 @@ button.icon {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 0.9rem;
+  padding: 0.9rem 0.9rem 2.4rem;
   pointer-events: none;
 }
 .top { display: flex; justify-content: space-between; gap: 0.7rem; }
@@ -218,16 +218,35 @@ button.icon {
 #delta { font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; }
 #spark { display: block; margin-top: 0.2rem; width: 168px; height: 28px; }
 .muted { color: var(--muted); }
-#banner {
-  align-self: center;
+#tape {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 16;
+  height: 1.85rem;
+  overflow: hidden;
+  pointer-events: none;
   background: rgba(11,18,24,0.85);
-  border: 1px solid rgba(196,69,60,0.4);
-  border-radius: 0.45rem;
-  padding: 0.45rem 1rem;
-  font-family: "Noto Serif TC", serif;
-  font-size: 0.9rem;
-  text-align: center;
-  max-width: 28rem;
+  border-top: 1px solid var(--border);
+}
+#tapeTrack {
+  display: inline-flex;
+  width: max-content;
+  white-space: nowrap;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.75rem;
+  line-height: 1.85rem;
+  color: var(--paper);
+  animation: tape-scroll 28s linear infinite;
+}
+#tapeA, #tapeB { padding: 0 2rem; }
+@keyframes tape-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #tapeTrack { animation: none; }
 }
 .bottom {
   display: flex;
@@ -311,7 +330,7 @@ button.icon {
   pointer-events: auto;
   position: absolute;
   left: 1.1rem;
-  bottom: 1.4rem;
+  bottom: 2.6rem;
   width: 8rem;
   height: 8rem;
   border-radius: 50%;

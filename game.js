@@ -340,7 +340,7 @@ const MAPS = {"hk":{"id":"hk","mapUrl":"maps/east-asia.json","west":105,"east":1
       this.awaitingWin = false;
       this.loseKind = null;
       this.banner = this.cycle === "bull" ? this.cfg.copy.startBannerBull : this.cfg.copy.startBannerBear;
-      this.bannerT = 2.6;
+      this.tape = this.banner ? [this.banner] : [];
       this.trauma = 0;
       this.leeCharges = LEE_MAX;
       this.leeCd = 0;
@@ -412,8 +412,6 @@ const MAPS = {"hk":{"id":"hk","mapUrl":"maps/east-asia.json","west":105,"east":1
         this.trauma = 0.35;
       }
       this.trauma = Math.max(0, this.trauma - dt * 1.4);
-      this.bannerT -= dt;
-      if (this.bannerT <= 0) this.banner = null;
       this.sparkT += dt;
       if (this.sparkT > 0.32) {
         this.sparkT = 0;
@@ -819,7 +817,12 @@ const MAPS = {"hk":{"id":"hk","mapUrl":"maps/east-asia.json","west":105,"east":1
       audio.ticker(true);
     }
 
-    flash(text, t) { this.banner = text; this.bannerT = t; }
+    flash(text) {
+      this.banner = text;
+      if (this.tape[this.tape.length - 1] === text) return;
+      this.tape.push(text);
+      if (this.tape.length > 10) this.tape.shift();
+    }
     offerWin() {
       if (this.ended || this.endless || this.awaitingWin) return;
       this.awaitingWin = true;
@@ -1237,9 +1240,17 @@ const MAPS = {"hk":{"id":"hk","mapUrl":"maps/east-asia.json","west":105,"east":1
       const d = $("delta");
       d.className = g.haltT > 0 ? "halted" : up ? "up" : "down";
       d.textContent = g.haltT > 0 ? `${c.haltShort} ${g.haltT.toFixed(1)}s` : `${up ? "+" : ""}${g.hsiDelta.toFixed(0)}`;
-      const ban = $("banner");
-      if (g.banner) { ban.textContent = g.banner; ban.classList.remove("hidden"); }
-      else ban.classList.add("hidden");
+      const line = (g.tape && g.tape.length ? g.tape : (g.banner ? [g.banner] : [])).join("    ·    ");
+      if (this._tapeLine !== line) {
+        this._tapeLine = line;
+        $("tapeA").textContent = line;
+        $("tapeB").textContent = line;
+        const track = $("tapeTrack");
+        track.style.animation = "none";
+        void track.offsetWidth;
+        const dur = Math.max(18, line.length * 0.22);
+        track.style.animation = `tape-scroll ${dur}s linear infinite`;
+      }
       const live = g.storms.filter((s) => !s.dead).length;
       g._live = live;
       $("lee").disabled = !(g.leeCharges > 0 && g.leeCd <= 0 && g.leeT <= 0);
